@@ -1,0 +1,423 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: #ffffff;
+}
+
+/* ════════════════════════════
+   NAVBAR CUSTOM STYLES
+════════════════════════════ */
+
+/* Animated pill underline for nav links */
+.nav-link-item::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: #111;
+  border-radius: 2px;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link-item:hover::after,
+.nav-link-item.active::after {
+  width: calc(100% - 20px);
+}
+
+/* Cart badge pop animation */
+@keyframes badgePop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.cart-badge-anim {
+  animation: badgePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+}
+
+/* Navbar entry animation */
+@keyframes navSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-slide-in {
+  animation: navSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Scroll indicator bounce */
+@keyframes scrollBounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+.scroll-bounce {
+  animation: scrollBounce 2.2s ease-in-out infinite;
+}
+
+/* Hamburger animation */
+.hamburger-open span:nth-child(1) {
+  transform: rotate(45deg) translate(4.5px, 4.5px);
+}
+
+.hamburger-open span:nth-child(2) {
+  opacity: 0;
+  width: 12px;
+}
+
+.hamburger-open span:nth-child(3) {
+  transform: rotate(-45deg) translate(4.5px, -4.5px);
+}
+
+/* Showcase image hover zoom */
+.showcase-zoom:hover img {
+  transform: scale(1.03);
+}
+
+/* Product card hover */
+.product-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.10);
+}
+
+.product-card-hover:active {
+  transform: translateY(-2px);
+}
+
+.product-card-hover:hover .product-img-scale {
+  transform: scale(1.06);
+}
+
+/* Collection card image hover */
+.col-card-hover:hover img {
+  transform: scale(1.05);
+}
+
+/* CTA background image hover */
+.cta-bg-hover:hover .cta-bg-img {
+  transform: scale(1.03);
+}
+
+/* ════════════════════════════
+   PERFORMANCE: GPU HINTS
+════════════════════════════ */
+.product-card-hover,
+.col-card-hover,
+.cta-bg-hover {
+  will-change: transform;
+}
+
+/* ════════════════════════════
+   ACCESSIBILITY: FOCUS STATES
+════════════════════════════ */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #111110;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ════════════════════════════════════════
+   PROFILE DROPDOWN (Navbar)
+════════════════════════════════════════ */
+
+/* Avatar button */
+.profile-avatar-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+
+.profile-avatar-btn:hover {
+  transform: scale(1.08);
+}
+
+.profile-avatar-btn:active {
+  transform: scale(0.96);
+}
+
+/* The circular avatar with user initial */
+.profile-avatar-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #C8A97E 0%, #A8865A 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  box-shadow: 0 2px 8px rgba(200, 169, 126, 0.35);
+  transition: box-shadow 0.2s;
+}
+
+.profile-avatar-btn:hover .profile-avatar-circle {
+  box-shadow: 0 4px 14px rgba(200, 169, 126, 0.5);
+}
+
+/* Dropdown panel */
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 240px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e8e4df;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 6px;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.97);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 500;
+}
+
+.profile-dropdown-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Header inside dropdown */
+.profile-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 8px;
+}
+
+.profile-dropdown-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #C8A97E 0%, #A8865A 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.profile-dropdown-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.profile-dropdown-email {
+  font-size: 11px;
+  color: #6B6B6B;
+  margin: 0;
+  line-height: 1.3;
+}
+
+/* Separator */
+.profile-dropdown-divider {
+  height: 1px;
+  background: #E8E4DF;
+  margin: 4px 8px;
+}
+
+/* Regular menu item */
+.profile-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: #444;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  text-align: left;
+}
+
+.profile-dropdown-item:hover {
+  background: #f5f3f0;
+  color: #1A1A1A;
+}
+
+/* Logout button — light red */
+.profile-dropdown-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: #E05252;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  text-align: left;
+}
+
+.profile-dropdown-logout:hover {
+  background: #FFF0F0;
+  color: #c43c3c;
+}
+
+/* ════════════════════════════════════════
+   AUTH & DASHBOARD STYLES
+════════════════════════════════════════ */
+
+/* Spinner used in login/signup loading states */
+.auth-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  animation: auth-spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Login page left panel — hidden on mobile */
+.auth-panel {
+  display: flex !important;
+}
+
+.auth-mobile-logo {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .auth-panel {
+    display: none !important;
+  }
+
+  .auth-mobile-logo {
+    display: block !important;
+  }
+}
+
+/* Dashboard hamburger — visible only on mobile */
+.auth-mob-btn {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .auth-mob-btn {
+    display: flex !important;
+  }
+
+  .auth-sidebar {
+    position: fixed;
+    left: -215px;
+    top: 0;
+    bottom: 0;
+    z-index: 95;
+    transition: left 0.3s;
+    padding-top: 66px !important;
+    height: 100%;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .auth-sidebar.open {
+    left: 0 !important;
+  }
+
+  .auth-uname {
+    display: none;
+  }
+
+  /* Stack the profile grid on mobile */
+  .auth-profile-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ════════════════════════════════════════
+   PREMIUM CATEGORY PAGE ANIMATIONS
+════════════════════════════════════════ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Base custom easing utilities */
+.ease-spring {
+  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ease-out-expo {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
