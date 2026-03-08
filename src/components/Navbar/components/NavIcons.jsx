@@ -6,10 +6,10 @@ import ProfileDropdown from './ProfileDropdown';
 export default function NavIcons({ setSearchOpen, drawerOpen, setDrawerOpen }) {
     const navigate = useNavigate();
     const { items: cartItems } = useCart();
-    const { wishlist } = useWishlist();
+    const { wishlistItems } = useWishlist();
 
     const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-    const wishlistCount = wishlist.length;
+    const wishlistCount = wishlistItems.length;
 
     return (
         <div className="flex items-center gap-1 shrink-0">

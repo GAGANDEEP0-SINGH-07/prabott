@@ -10,14 +10,14 @@ import { useAuth } from "../../context/AuthContext";
 export function Navbar({ activePage, onNavigate, onSearchOpen }) {
     const navigate = useNavigate();
     const { items: cartItems } = useCart();
-    const { wishlist } = useWishlist();
+    const { wishlistItems } = useWishlist();
     const { user } = useAuth();
 
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-    const wishlistCount = wishlist.length;
+    const wishlistCount = wishlistItems.length;
 
     useEffect(() => {
         const fn = () => setScrolled(window.scrollY > 10);
