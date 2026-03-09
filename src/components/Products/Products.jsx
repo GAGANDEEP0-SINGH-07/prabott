@@ -1,13 +1,14 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { ProductCard } from '../prabott/ProductCard';
 import ProductHeader from './components/ProductHeader';
-import { GlobalStyles } from '../prabott/Shared';
+import { GlobalStyles, CartToast } from '../prabott/Shared';
 import { useCart } from '../../context/CartContext';
 
 import { products as allProducts } from '../../data/products';
 
 function Products() {
     const { addToCart } = useCart();
+    const [toastMsg, setToastMsg] = useState('');
     // Only show a few furniture/featured items on the home page for brevity
     const featuredProducts = allProducts.slice(0, 8);
 
@@ -27,17 +28,19 @@ function Products() {
                     };
                     return (
                         <ProductCard
-                            key={product.name}
+                            key={product.id || product.name}
                             product={adaptedProduct}
                             onAddCart={(product) => {
                                 addToCart(product, 1);
-                                alert('Added ' + product.name + ' to cart!');
+                                setToastMsg('Added ' + product.name + ' to cart!');
+                                setTimeout(() => setToastMsg(''), 2500);
                             }}
                             view="grid"
                         />
                     );
                 })}
             </div>
+            <CartToast message={toastMsg} show={!!toastMsg} />
         </section>
     );
 }

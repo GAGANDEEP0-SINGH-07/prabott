@@ -1,12 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { safeJsonParse } from '../utils/helpers';
 
 export const WishlistContext = createContext(null);
 
 export function WishlistProvider({ children }) {
-    const [wishlistItems, setWishlistItems] = useState(() => {
-        const saved = localStorage.getItem('prabott_wishlist');
-        return saved ? JSON.parse(saved) : [];
-    });
+    const [wishlistItems, setWishlistItems] = useState(() => safeJsonParse('prabott_wishlist', []));
 
     useEffect(() => {
         localStorage.setItem('prabott_wishlist', JSON.stringify(wishlistItems));

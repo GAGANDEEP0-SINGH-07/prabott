@@ -23,7 +23,7 @@ export default function Footer() {
 
                 {/* Copyright */}
                 <p className="text-[0.76rem] font-normal text-[#aaa] tracking-[0.01em] text-center">
-                    Copyright 2026, All Right Reserved
+                    Copyright {new Date().getFullYear()}, All Rights Reserved
                 </p>
 
                 {/* Terms */}

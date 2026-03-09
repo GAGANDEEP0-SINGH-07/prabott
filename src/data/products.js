@@ -159,12 +159,12 @@ export const products = [
         sale: false,
     },
 
-    // --- Lightning ---
+    // --- Lighting ---
     {
         id: 'l1',
         name: 'Aura Minimalist Floor Lamp',
         img: '/picture/WalnutGrace Chair.webp', // ref mock
-        category: 'Lightning',
+        category: 'Lighting',
         type: 'Floor Lamp',
         price: '£ 450',
         numericPrice: 450,
@@ -177,7 +177,7 @@ export const products = [
         id: 'l2',
         name: 'Nova Brass Pendant Light',
         img: '/picture/Luxe Storage Buffet.webp', // ref mock
-        category: 'Lightning',
+        category: 'Lighting',
         type: 'Ceiling',
         price: '£ 320',
         numericPrice: 320,
@@ -190,7 +190,7 @@ export const products = [
         id: 'l3',
         name: 'Lumina Ceramic Table Lamp',
         img: '/picture/Classic Harmony Sideboard.webp', // ref mock
-        category: 'Lightning',
+        category: 'Lighting',
         type: 'Table Lamp',
         price: '£ 210',
         numericPrice: 210,
@@ -203,7 +203,7 @@ export const products = [
         id: 'l4',
         name: 'Eclipse Wall Sconce',
         img: '/picture/Leather Couch.webp', // ref mock
-        category: 'Lightning',
+        category: 'Lighting',
         type: 'Wall',
         price: '£ 180',
         numericPrice: 180,
@@ -213,12 +213,12 @@ export const products = [
         sale: false,
     },
 
-    // --- Dinning ---
+    // --- Dining ---
     {
         id: 'd1',
         name: 'Feast Grand Oak Table',
         img: '/picture/Classic Harmony Sideboard.webp', // ref mock
-        category: 'Dinning',
+        category: 'Dining',
         type: 'Table',
         price: '£ 3,100',
         numericPrice: 3100,
@@ -231,7 +231,7 @@ export const products = [
         id: 'd2',
         name: 'Bistro Rattan Dining Chair',
         img: '/picture/WalnutGrace Chair.webp', // ref mock
-        category: 'Dinning',
+        category: 'Dining',
         type: 'Chair',
         price: '£ 350',
         numericPrice: 350,
@@ -244,7 +244,7 @@ export const products = [
         id: 'd3',
         name: 'Cuisine Marble Round Table',
         img: '/picture/Luxe Storage Buffet.webp', // ref mock
-        category: 'Dinning',
+        category: 'Dining',
         type: 'Table',
         price: '£ 2,650',
         numericPrice: 2650,
@@ -257,7 +257,7 @@ export const products = [
         id: 'd4',
         name: 'Sleek Metal Bar Stool',
         img: '/picture/Vertex Premium Patio Chair.webp', // ref mock
-        category: 'Dinning',
+        category: 'Dining',
         type: 'Stool',
         price: '£ 220',
         numericPrice: 220,
@@ -313,7 +313,7 @@ export const products = [
         id: 'm1',
         name: 'Reflect Arch Floor Mirror',
         img: '/picture/Classic Harmony Sideboard.webp', // ref mock
-        category: 'Mirrors & Decors',
+        category: 'Mirrors & Décor',
         type: 'Mirror',
         price: '£ 420',
         numericPrice: 420,
@@ -326,7 +326,7 @@ export const products = [
         id: 'm2',
         name: 'Vivid Abstract Canvas Print',
         img: '/picture/Leather Couch.webp', // ref mock
-        category: 'Mirrors & Decors',
+        category: 'Mirrors & Décor',
         type: 'Art',
         price: '£ 280',
         numericPrice: 280,
@@ -339,7 +339,7 @@ export const products = [
         id: 'm3',
         name: 'Echo Geometric Wall Mirror',
         img: '/picture/Luxe Storage Buffet.webp', // ref mock
-        category: 'Mirrors & Decors',
+        category: 'Mirrors & Décor',
         type: 'Mirror',
         price: '£ 190',
         numericPrice: 190,
@@ -352,7 +352,7 @@ export const products = [
         id: 'm4',
         name: 'Serene Ceramic Vase Set',
         img: '/picture/WalnutGrace Chair.webp', // ref mock
-        category: 'Mirrors & Decors',
+        category: 'Mirrors & Décor',
         type: 'Decor',
         price: '£ 110',
         numericPrice: 110,

@@ -1,12 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { safeJsonParse, parsePrice, isProductMatch } from '../utils/helpers';
 
 export const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
-    const [cartItems, setCartItems] = useState(() => {
-        const saved = localStorage.getItem('prabott_cart');
-        return saved ? JSON.parse(saved) : [];
-    });
+    const [cartItems, setCartItems] = useState(() => safeJsonParse('prabott_cart', []));
 
     useEffect(() => {
         localStorage.setItem('prabott_cart', JSON.stringify(cartItems));
@@ -14,22 +12,16 @@ export function CartProvider({ children }) {
 
     const addToCart = (product, quantity = 1) => {
         setCartItems(prev => {
-            const existing = prev.find(item => (item.id && item.id === product.id) || item.name === product.name);
+            const existing = prev.find(item => isProductMatch(item, product));
             if (existing) {
                 return prev.map(item =>
-                    ((item.id && item.id === product.id) || item.name === product.name)
+                    isProductMatch(item, product)
                         ? { ...item, quantity: item.quantity + quantity }
                         : item
                 );
             }
 
-            // Extract the price as a number properly
-            let numericPrice = 0;
-            if (typeof product.price === 'number') {
-                numericPrice = product.price;
-            } else if (typeof product.price === 'string') {
-                numericPrice = parseFloat(product.price.replace(/[^0-9.]/g, ''));
-            }
+            const numericPrice = parsePrice(product.price);
 
             return [...prev, {
                 id: product.id || Date.now() + Math.random(),

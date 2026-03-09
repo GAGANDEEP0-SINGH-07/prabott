@@ -73,9 +73,9 @@ export default function OrderConfirmation() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-[14px] font-semibold text-[#1A1A1A] truncate">{item.name}</p>
-                                            <p className="text-[12px] text-[#666]">Qty: {item.qty}</p>
+                                            <p className="text-[12px] text-[#666]">Qty: {item.quantity}</p>
                                         </div>
-                                        <p className="text-[14px] font-bold text-[#1A1A1A]">${(item.price * item.qty).toLocaleString()}</p>
+                                        <p className="text-[14px] font-bold text-[#1A1A1A]">£{(item.price * item.quantity).toLocaleString()}</p>
                                     </div>
                                 ))}
                                 <div className="mt-4 pt-4 border-t border-[#e8e4df] flex justify-between items-baseline">

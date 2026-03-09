@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { safeJsonParse, hashPassword } from "../../utils/helpers";
 
 /* ═══════════════════════════════════════
    DESIGN TOKENS
@@ -21,10 +22,11 @@ const C = {
 /* ═══════════════════════════════════════
    HELPERS & LOCALSTORAGE MOCK DB
 ═══════════════════════════════════════ */
-const getUsers = () => JSON.parse(localStorage.getItem('prabott_users') || '[]');
-const saveUser = (user) => {
+const getUsers = () => safeJsonParse('prabott_users', []);
+const saveUser = async (user) => {
     const users = getUsers();
-    users.push(user);
+    const hashedUser = { ...user, password: await hashPassword(user.password) };
+    users.push(hashedUser);
     localStorage.setItem('prabott_users', JSON.stringify(users));
 };
 const updateUserInDb = (email, updates) => {
@@ -76,24 +78,17 @@ function Field({ label, type = "text", value, onChange, placeholder, error, note
 }
 
 function Btn({ children, onClick, variant = "dark", full, small, disabled, type = "button" }) {
-    const [hover, setHover] = useState(false);
-    const styles = {
-        dark: { bg: hover ? "#333" : C.dark, color: "#fff", border: "none" },
-        outline: { bg: hover ? C.accentLight : "transparent", color: C.dark, border: `1.5px solid ${C.border}` },
-    };
-    const s = styles[variant] || styles.dark;
+    const btnClass = variant === "outline" ? "auth-btn auth-btn-outline" : "auth-btn auth-btn-dark";
 
     return (
         <button
             type={type}
             onClick={onClick}
             disabled={disabled}
-            onMouseEnter={() => setHover(true)}
-            onMouseLeave={() => setHover(false)}
+            className={btnClass}
             style={{
                 display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                 padding: small ? "8px 16px" : "14px 28px", borderRadius: 12,
-                background: s.bg, color: s.color, border: s.border,
                 fontSize: small ? 12 : 15, fontWeight: 700, cursor: disabled ? "not-allowed" : "pointer",
                 transition: "all 0.2s", width: full ? "100%" : "auto",
                 opacity: disabled ? 0.6 : 1,
@@ -101,6 +96,12 @@ function Btn({ children, onClick, variant = "dark", full, small, disabled, type 
             }}
         >
             {children}
+            <style>{`
+                .auth-btn-dark { background: ${C.dark}; color: #fff; border: none; }
+                .auth-btn-dark:hover { background: #333; }
+                .auth-btn-outline { background: transparent; color: ${C.dark}; border: 1.5px solid ${C.border}; }
+                .auth-btn-outline:hover { background: ${C.accentLight}; }
+            `}</style>
         </button>
     );
 }
@@ -182,9 +183,10 @@ function Login({ onLogin, onSignup }) {
         setErrors({});
 
         // Mock delay for UX
-        setTimeout(() => {
+        setTimeout(async () => {
             const users = getUsers();
-            const user = users.find(u => u.email === email && u.password === pass);
+            const hashedPass = await hashPassword(pass);
+            const user = users.find(u => u.email === email && u.password === hashedPass);
 
             if (user) {
                 setLoading(false);
@@ -299,8 +301,8 @@ function Signup({ onSignup, onLogin }) {
         if (Object.keys(e).length) { setErrors(e); return; }
 
         setLoading(true);
-        setTimeout(() => {
-            saveUser({
+        setTimeout(async () => {
+            await saveUser({
                 name: fields.name,
                 email: fields.email,
                 password: fields.pass,
@@ -417,17 +419,21 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
         const users = getUsers();
         const storedUser = users.find(u => u.email === user.email);
 
-        if (passData.current !== storedUser.password) e.current = "Incorrect current password";
-        if (passData.next.length < 8) e.next = "Min 8 characters";
-        if (passData.next !== passData.confirm) e.confirm = "Passwords don't match";
+        hashPassword(passData.current).then(hashedCurrent => {
+            if (hashedCurrent !== storedUser.password) e.current = "Incorrect current password";
+            if (passData.next.length < 8) e.next = "Min 8 characters";
+            if (passData.next !== passData.confirm) e.confirm = "Passwords don't match";
 
-        if (Object.keys(e).length) { setErrors(e); return; }
+            if (Object.keys(e).length) { setErrors(e); return; }
 
-        updateUserInDb(user.email, { password: passData.next });
-        setPassData({ current: "", next: "", confirm: "" });
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
-        setErrors({});
+            hashPassword(passData.next).then(hashedNext => {
+                updateUserInDb(user.email, { password: hashedNext });
+                setPassData({ current: "", next: "", confirm: "" });
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2000);
+                setErrors({});
+            });
+        });
     };
 
     const NAV = [
