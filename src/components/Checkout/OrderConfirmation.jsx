@@ -80,7 +80,7 @@ export default function OrderConfirmation() {
                                 ))}
                                 <div className="mt-4 pt-4 border-t border-[#e8e4df] flex justify-between items-baseline">
                                     <p className="text-[14px] font-semibold text-[#1A1A1A]">Total Paid</p>
-                                    <p className="text-[24px] font-bold text-[#1A1A1A] tracking-tighter">${orderData.total.toLocaleString()}</p>
+                                    <p className="text-[24px] font-bold text-[#1A1A1A] tracking-tighter">£{orderData.total.toLocaleString()}</p>
                                 </div>
                             </div>
                         </div>
