@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { SearchIcon, HeartIcon, CartIcon, UserIcon, CloseIcon, MenuIcon, CheckIcon, Star } from "./Shared";
 import { PAGES } from "../../data/newProducts";
@@ -20,8 +20,17 @@ export function Navbar({ activePage, onNavigate, onSearchOpen }) {
     const wishlistCount = wishlistItems.length;
 
     useEffect(() => {
-        const fn = () => setScrolled(window.scrollY > 10);
-        window.addEventListener("scroll", fn);
+        let ticking = false;
+        const fn = () => {
+            if (!ticking) {
+                ticking = true;
+                requestAnimationFrame(() => {
+                    setScrolled(window.scrollY > 10);
+                    ticking = false;
+                });
+            }
+        };
+        window.addEventListener("scroll", fn, { passive: true });
         return () => window.removeEventListener("scroll", fn);
     }, []);
 

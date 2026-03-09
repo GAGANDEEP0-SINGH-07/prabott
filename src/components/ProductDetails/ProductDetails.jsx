@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -34,9 +34,6 @@ const ProductDetails = () => {
         description: foundProduct?.description || "Loose-fit sweatshirt hoodie in medium weight cotton-blend fabric with a generous, but not oversized silhouette. Jersey-lined, drawstring hood.",
         colors: foundProduct?.colors || ['#f8f8f8', '#aaaaaa', '#4e5a37', '#915f33'],
         images: foundProduct?.img ? [
-            foundProduct.img,
-            foundProduct.img,
-            foundProduct.img,
             foundProduct.img
         ] : [
             "https://images.unsplash.com/photo-1592078615290-033ee584e267?q=80&w=1000&auto=format&fit=crop",
@@ -60,9 +57,12 @@ const ProductDetails = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
 
+    const [toastVisible, setToastVisible] = useState(false);
+
     const handleAddToCart = () => {
         addToCart(product, quantity);
-        alert('Product added to cart!');
+        setToastVisible(true);
+        setTimeout(() => setToastVisible(false), 2500);
     };
 
     const handleBuyNow = () => {
@@ -91,23 +91,25 @@ const ProductDetails = () => {
                     <div className="pd-main-image-wrapper">
                         <img src={product.images[activeImage]} alt={product.name} className="pd-main-image" />
                     </div>
-                    <div className="pd-thumbnails">
-                        {product.images.slice(1, 4).map((img, index) => (
-                            <div
-                                key={index}
-                                className={`pd-thumbnail-wrapper ${activeImage === index + 1 ? 'active' : ''}`}
-                                onClick={() => setActiveImage(index + 1)}
-                            >
-                                <img src={img} alt={`Thumbnail ${index + 1}`} className="pd-thumbnail" />
-                            </div>
-                        ))}
-                    </div>
+                    {product.images.length > 1 && (
+                        <div className="pd-thumbnails">
+                            {product.images.slice(1, 4).map((img, index) => (
+                                <div
+                                    key={index}
+                                    className={`pd-thumbnail-wrapper ${activeImage === index + 1 ? 'active' : ''}`}
+                                    onClick={() => setActiveImage(index + 1)}
+                                >
+                                    <img src={img} alt={`Thumbnail ${index + 1}`} className="pd-thumbnail" />
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Column - Info */}
                 <div className="pd-info-section">
                     <h1 className="pd-product-title">{product.name}</h1>
-                    <div className="pd-product-price">${product.price.toFixed(2)}</div>
+                    <div className="pd-product-price">£{product.price.toFixed(2)}</div>
 
                     {/* Description Accordion */}
                     <div className={`pd-accordion ${descOpen ? 'open' : ''}`}>
@@ -194,7 +196,7 @@ const ProductDetails = () => {
                                     </div>
                                     <div>
                                         <div className="pd-shipping-label">Arrive</div>
-                                        <div className="pd-shipping-value">0 - 12 Oct 2024</div>
+                                        <div className="pd-shipping-value">{(() => { const d = new Date(); d.setDate(d.getDate() + 12); return `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })} ${d.getFullYear()}`; })()}</div>
                                     </div>
                                 </div>
                             </div>
@@ -209,10 +211,10 @@ const ProductDetails = () => {
                 <div className="pd-reviews-content">
                     <div className="pd-reviews-left">
                         <div className="pd-overall-rating">
-                            <span className="pd-rating-huge">4.5</span>
+                            <span className="pd-rating-huge">{product.rating}</span>
                             <span className="pd-rating-max">/5</span>
                         </div>
-                        <div className="pd-reviews-count">(50 New Reviews)</div>
+                        <div className="pd-reviews-count">({product.reviews} Reviews)</div>
                         <div className="pd-rating-bars">
                             {[5, 4, 3, 2, 1].map(stars => (
                                 <div key={stars} className="pd-rating-bar-row">
@@ -245,6 +247,21 @@ const ProductDetails = () => {
                     </div>
                 </div>
             </div>
+            {/* Toast notification */}
+            {toastVisible && (
+                <div style={{
+                    position: 'fixed', bottom: 28, right: 28, zIndex: 999,
+                    background: '#1a1a18', color: 'white',
+                    padding: '16px 24px', borderRadius: 14,
+                    fontSize: 13, fontWeight: 400, letterSpacing: '.3px',
+                    boxShadow: '0 20px 48px rgba(0,0,0,.25)',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    fontFamily: "'Inter',sans-serif",
+                    animation: 'fadeInUp 0.4s ease'
+                }}>
+                    ✓ Product added to cart!
+                </div>
+            )}
         </div>
     );
 };

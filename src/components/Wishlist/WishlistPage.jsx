@@ -60,7 +60,7 @@ export default function WishlistPage() {
                                         <h3 className="text-[17px] font-bold text-[#1A1A1A] mb-3">{item.name}</h3>
                                         <div className="flex items-center justify-between mt-auto">
                                             <span className="text-[18px] font-bold text-[#1A1A1A]">
-                                                ${typeof item.price === 'number' ? item.price.toLocaleString() : item.price}
+                                                £{typeof item.price === 'number' ? item.price.toLocaleString() : item.price}
                                             </span>
                                             <button
                                                 onClick={() => handleAddToCart(item)}
@@ -80,7 +80,7 @@ export default function WishlistPage() {
                             </div>
                             <h2 className="text-[24px] font-bold text-[#1A1A1A] mb-2">Your wishlist is empty</h2>
                             <p className="text-[#999] mb-10 max-w-[400px] mx-auto">
-                                Browsing our collection and save items you love to find them here easily.
+                                Browse our collection and save items you love to find them here easily.
                             </p>
                             <Link
                                 to="/collections"

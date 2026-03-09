@@ -3,6 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../Footer/Footer';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { safeJsonParse } from '../../utils/helpers';
+
+const SHIPPING_METHODS = [
+    { id: 'standard', name: 'Standard Shipping', price: 0, deliveryText: '5-7 Business Days' },
+    { id: 'express', name: 'Express Shipping', price: 15, deliveryText: '2-3 Business Days' },
+    { id: 'nextday', name: 'Next Day Delivery', price: 29, deliveryText: '1 Business Day' },
+];
 
 export default function CheckoutPage() {
     const { items, clearCart } = useCart();
@@ -36,12 +43,6 @@ export default function CheckoutPage() {
     });
 
     const [errors, setErrors] = useState({});
-
-    const SHIPPING_METHODS = [
-        { id: 'standard', name: 'Standard Shipping', price: 0, deliveryText: '5-7 Business Days' },
-        { id: 'express', name: 'Express Shipping', price: 15, deliveryText: '2-3 Business Days' },
-        { id: 'nextday', name: 'Next Day Delivery', price: 29, deliveryText: '1 Business Day' },
-    ];
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -110,7 +111,7 @@ export default function CheckoutPage() {
         // Save to User's Order History in localStorage
         const userId = user?.email || 'guest';
         const historyKey = `prabott_orders_${userId}`;
-        const existingHistory = JSON.parse(localStorage.getItem(historyKey) || '[]');
+        const existingHistory = safeJsonParse(historyKey, []);
         localStorage.setItem(historyKey, JSON.stringify([orderData, ...existingHistory]));
 
         clearCart();

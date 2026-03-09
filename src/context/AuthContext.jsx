@@ -1,12 +1,10 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
+import { safeJsonParse } from '../utils/helpers';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(() => {
-        const saved = localStorage.getItem('prabott_user');
-        return saved ? JSON.parse(saved) : null;
-    });
+    const [user, setUser] = useState(() => safeJsonParse('prabott_user', null));
 
     const login = useCallback((userData, remember = false) => {
         setUser(userData);

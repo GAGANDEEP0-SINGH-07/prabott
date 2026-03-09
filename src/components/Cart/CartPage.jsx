@@ -32,7 +32,7 @@ function CartItem({ item, onQtyChange, onRemove }) {
                 <div className="flex-1 min-w-0">
                     <h3 className="text-[17px] font-semibold text-[#1A1A1A] tracking-[-0.01em] mb-1">{item.name}</h3>
                     <p className="text-[13px] text-[#999]">{item.description}</p>
-                    <p className="text-[15px] font-medium text-[#555] mt-2">${item.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-[15px] font-medium text-[#555] mt-2">£{item.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                 </div>
 
                 {/* Quantity + Price + Remove */}
@@ -58,7 +58,7 @@ function CartItem({ item, onQtyChange, onRemove }) {
 
                     {/* Subtotal */}
                     <span className="text-[18px] font-bold text-[#1A1A1A] tracking-[-0.02em] min-w-[100px] text-right">
-                        ${(item.price * item.quantity).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        £{(item.price * item.quantity).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </span>
 
                     {/* Remove */}
@@ -94,16 +94,7 @@ export default function CartPage() {
         }
     };
 
-    const handleQtyChange = (id, newQty) => {
-        updateQuantity(id, newQty);
-    };
-
-    const handleRemove = (id) => {
-        removeFromCart(id);
-    };
-
-    const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const total = subtotal;
+    const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
 
     return (
@@ -158,8 +149,8 @@ export default function CartPage() {
                                     <CartItem
                                         key={item.id}
                                         item={item}
-                                        onQtyChange={handleQtyChange}
-                                        onRemove={handleRemove}
+                                        onQtyChange={updateQuantity}
+                                        onRemove={removeFromCart}
                                     />
                                 ))}
 
@@ -196,7 +187,7 @@ export default function CartPage() {
                                 <div className="flex flex-col gap-4 pb-6 border-b border-[#f0eeeb]">
                                     <div className="flex justify-between text-[14px]">
                                         <span className="text-[#888]">Subtotal ({totalItems} items)</span>
-                                        <span className="font-semibold">${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                        <span className="font-semibold">£{total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                                     </div>
 
                                     <div className="flex justify-between text-[14px]">
@@ -207,7 +198,7 @@ export default function CartPage() {
 
                                 <div className="flex justify-between items-baseline pt-6 mb-8">
                                     <span className="text-[16px] font-medium text-[#1A1A1A]">Grand Total</span>
-                                    <span className="text-[32px] font-bold tracking-[-0.03em]">${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                    <span className="text-[32px] font-bold tracking-[-0.03em]">£{total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                                 </div>
 
                                 <button onClick={handleCheckout} className="w-full h-[56px] bg-[#1A1A1A] text-white rounded-[14px] text-[15px] font-bold tracking-[-0.01em] hover:bg-[#333] hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] active:scale-[0.98] transition-all duration-300 cursor-pointer border-none mb-4 flex items-center justify-center gap-2 font-['Inter',sans-serif]">
