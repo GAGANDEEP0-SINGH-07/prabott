@@ -398,7 +398,7 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
         setTimeout(() => setVisible(true), 60);
 
         // Load Order History
-        const savedOrders = JSON.parse(localStorage.getItem(`prabott_orders_${user.email}`) || '[]');
+        const savedOrders = safeJsonParse(`prabott_orders_${user.email}`, []);
         setOrders(savedOrders);
 
         if (initialTab) setTab(initialTab);
@@ -420,7 +420,7 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
         const storedUser = users.find(u => u.email === user.email);
 
         hashPassword(passData.current).then(hashedCurrent => {
-            if (hashedCurrent !== storedUser.password) e.current = "Incorrect current password";
+            if (!storedUser || hashedCurrent !== storedUser.password) e.current = "Incorrect current password";
             if (passData.next.length < 8) e.next = "Min 8 characters";
             if (passData.next !== passData.confirm) e.confirm = "Passwords don't match";
 
@@ -539,7 +539,7 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
                                                     <img src={item.image} alt={item.name} style={{ width: 40, height: 40, borderRadius: 8, objectFit: "cover" }} />
                                                     <div style={{ flex: 1 }}>
                                                         <p style={{ fontSize: 13, fontWeight: 700, color: C.dark, margin: 0 }}>{item.name}</p>
-                                                        <p style={{ fontSize: 11, color: "#999" }}>Qty: {item.qty} · £{item.price.toLocaleString()}</p>
+                                                        <p style={{ fontSize: 11, color: "#999" }}>Qty: {item.quantity} · £{item.price.toLocaleString()}</p>
                                                     </div>
                                                 </div>
                                             ))}

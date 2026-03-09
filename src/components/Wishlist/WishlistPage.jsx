@@ -60,7 +60,7 @@ export default function WishlistPage() {
                                         <h3 className="text-[17px] font-bold text-[#1A1A1A] mb-3">{item.name}</h3>
                                         <div className="flex items-center justify-between mt-auto">
                                             <span className="text-[18px] font-bold text-[#1A1A1A]">
-                                                ${typeof item.price === 'number' ? item.price.toLocaleString() : item.price}
+                                                £{typeof item.price === 'number' ? item.price.toLocaleString() : item.price}
                                             </span>
                                             <button
                                                 onClick={() => handleAddToCart(item)}

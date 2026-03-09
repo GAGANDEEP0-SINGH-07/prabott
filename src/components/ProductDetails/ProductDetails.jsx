@@ -91,17 +91,19 @@ const ProductDetails = () => {
                     <div className="pd-main-image-wrapper">
                         <img src={product.images[activeImage]} alt={product.name} className="pd-main-image" />
                     </div>
-                    <div className="pd-thumbnails">
-                        {product.images.slice(1, 4).map((img, index) => (
-                            <div
-                                key={index}
-                                className={`pd-thumbnail-wrapper ${activeImage === index + 1 ? 'active' : ''}`}
-                                onClick={() => setActiveImage(index + 1)}
-                            >
-                                <img src={img} alt={`Thumbnail ${index + 1}`} className="pd-thumbnail" />
-                            </div>
-                        ))}
-                    </div>
+                    {product.images.length > 1 && (
+                        <div className="pd-thumbnails">
+                            {product.images.slice(1, 4).map((img, index) => (
+                                <div
+                                    key={index}
+                                    className={`pd-thumbnail-wrapper ${activeImage === index + 1 ? 'active' : ''}`}
+                                    onClick={() => setActiveImage(index + 1)}
+                                >
+                                    <img src={img} alt={`Thumbnail ${index + 1}`} className="pd-thumbnail" />
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Column - Info */}
