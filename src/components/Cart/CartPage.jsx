@@ -22,7 +22,7 @@ function CartItem({ item, onQtyChange, onRemove }) {
                 {/* Product Image */}
                 <div className="w-[120px] h-[120px] bg-[#F7F5F2] rounded-[14px] shrink-0 overflow-hidden max-[700px]:w-full max-[700px]:h-[200px]">
                     <img
-                        src={item.image}
+                        src={item.image?.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image}`}
                         alt={item.name}
                         className="w-full h-full object-cover rounded-[14px] group-hover:scale-105 transition-transform duration-500"
                     />

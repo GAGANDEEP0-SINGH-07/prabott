@@ -37,7 +37,25 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // Enable CORS
-app.use(cors());
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://prabott.vercel.app' // Optional: pre-emptively add user's likely Vercel domain
+].filter(Boolean);
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1 && process.env.NODE_ENV === 'production') {
+            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
+    credentials: true
+}));
 
 // Webhook route needs raw body for Stripe signature verification
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));

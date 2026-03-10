@@ -119,7 +119,11 @@ const ProductDetails = () => {
                 {/* Left Column - Images */}
                 <div className="pd-image-section">
                     <div className="pd-main-image-wrapper">
-                        <img src={displayProduct.images[activeImage] || displayProduct.images[0]} alt={displayProduct.name} className="pd-main-image" />
+                        {(() => {
+                            const img = displayProduct.images[activeImage] || displayProduct.images[0];
+                            const resolvedImg = img?.startsWith('http') ? img : `${import.meta.env.VITE_API_URL || ''}${img}`;
+                            return <img src={resolvedImg} alt={displayProduct.name} className="pd-main-image" />;
+                        })()}
                     </div>
                     <div className="pd-thumbnails">
                         {[0, 1, 2].map((index) => {

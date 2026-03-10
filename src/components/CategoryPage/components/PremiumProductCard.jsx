@@ -30,7 +30,7 @@ export function PremiumProductCard({ product, onAddCart, view }) {
                 onClick={() => navigate(`/product/${encodeURIComponent(product.name)}`, { state: { product } })}
             >
                 <div style={{ width: 160, height: 120, flexShrink: 0, overflow: "hidden", position: "relative", borderRadius: 12 }}>
-                    <img src={product.img} alt={product.name} style={{
+                    <img src={product.img?.startsWith('http') ? product.img : `${import.meta.env.VITE_API_URL || ''}${product.img}`} alt={product.name} style={{
                         width: "100%", height: "100%", objectFit: "cover",
                         transition: "transform .6s cubic-bezier(.16,1,.3,1)",
                     }}
@@ -106,7 +106,7 @@ export function PremiumProductCard({ product, onAddCart, view }) {
                 >
                     <HeartIcon filled={isWishlisted} color={isWishlisted ? "#E05252" : "#1a1a18"} />
                 </button>
-                <img src={product.img} alt={product.name} />
+                <img src={product.img?.startsWith('http') ? product.img : `${import.meta.env.VITE_API_URL || ''}${product.img}`} alt={product.name} />
             </div>
             <div style={{ padding: "16px 16px 20px" }}>
                 <span style={{
