@@ -6,7 +6,7 @@ import { Sidebar } from "./components/Sidebar";
 import { BespokeCTA } from "./components/BespokeCTA";
 import { EditorialBand } from "./components/EditorialBand";
 import { CategoryHero } from "./components/CategoryHero";
-import PremiumProductCard from "../Shared/PremiumProductCard";
+import { PremiumProductCard } from "./components/PremiumProductCard";
 import { CATEGORY_METADATA } from "../../config/categoryMetadata";
 
 export function CategoryPage({ page, onAddCart }) {
