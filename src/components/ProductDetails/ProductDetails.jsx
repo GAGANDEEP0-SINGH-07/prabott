@@ -2,82 +2,112 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { products as oldProducts } from '../../data/products';
-import { PAGE_DATA } from '../../data/newProducts';
+import api from '../../api';
 import './ProductDetails.css';
 
 const ProductDetails = () => {
     const { id } = useParams();
     const location = useLocation();
-
-    const decodedId = id ? decodeURIComponent(id) : '';
-    let foundProduct = location.state?.product;
-
-    if (!foundProduct) {
-        for (const cat of Object.values(PAGE_DATA || {})) {
-            const match = cat.products?.find(p => p.name === decodedId);
-            if (match) {
-                foundProduct = match;
-                break;
-            }
-        }
-    }
-    if (!foundProduct) {
-        foundProduct = oldProducts?.find(p => p.name === decodedId);
-    }
-
-    const productPrice = foundProduct ? (typeof foundProduct.price === 'number' ? foundProduct.price : foundProduct.numericPrice || 240.99) : 240.99;
-
-    const product = {
-        name: foundProduct ? foundProduct.name : (decodedId || "Elite Chair"),
-        price: productPrice,
-        description: foundProduct?.description || "Loose-fit sweatshirt hoodie in medium weight cotton-blend fabric with a generous, but not oversized silhouette. Jersey-lined, drawstring hood.",
-        colors: foundProduct?.colors || ['#f8f8f8', '#aaaaaa', '#4e5a37', '#915f33'],
-        images: foundProduct?.img ? [
-            foundProduct.img,
-            foundProduct.img,
-            foundProduct.img,
-            foundProduct.img
-        ] : [
-            "https://images.unsplash.com/photo-1592078615290-033ee584e267?q=80&w=1000&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1592078615290-033ee584e267?q=80&w=1000&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?q=80&w=1000&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1503602642458-232111445657?q=80&w=1000&auto=format&fit=crop"
-        ],
-        rating: foundProduct?.rating || 4.5,
-        reviews: foundProduct?.reviews || 50,
-        ...foundProduct
-    };
+    const [product, setProduct] = useState(location.state?.product || null);
+    const [loading, setLoading] = useState(!product);
+    const [error, setError] = useState(null);
 
     const [quantity, setQuantity] = useState(1);
     const [selectedColor, setSelectedColor] = useState(0);
     const [activeImage, setActiveImage] = useState(0);
 
     const [descOpen, setDescOpen] = useState(true);
-    const [shippingOpen, setShippingOpen] = useState(true);
+    const [featuresOpen, setFeaturesOpen] = useState(false);
+    const [activeReview, setActiveReview] = useState(0);
 
     const { addToCart } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const fetchProduct = async () => {
+            if (product) return; // We already have it from location state
+
+            try {
+                // If it's a valid Mongo ObjectId, this will fetch directly
+                const { data } = await api.get(`/products/${id}`);
+                setProduct(data);
+            } catch (err) {
+                // To safely handle mock data routes that still use names mapping, we can try searching by name or just show error
+                setError("Product not found or invalid ID.");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProduct();
+        window.scrollTo(0, 0);
+    }, [id, product]);
+
     const handleAddToCart = () => {
-        addToCart(product, quantity);
-        alert('Product added to cart!');
+        if (!product) return;
+        addToCart({
+            _id: product._id,
+            id: product._id || product.id,
+            name: product.name,
+            price: product.price,
+            image: product.images?.[0] || product.img || '',
+            description: product.description || ''
+        }, quantity);
     };
 
     const handleBuyNow = () => {
+        if (!product) return;
         if (!user) {
             navigate('/login');
         } else {
-            addToCart(product, quantity);
+            addToCart({
+                _id: product._id,
+                id: product._id || product.id,
+                name: product.name,
+                price: product.price,
+                image: product.images?.[0] || product.img || '',
+                description: product.description || ''
+            }, quantity);
             navigate('/cart');
         }
     };
 
-    // Scroll to top on mount
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
+    if (loading) return <div style={{ padding: '60px 20px', textAlign: 'center', color: '#666' }}>Loading elegant pieces...</div>;
+    if (error || !product) return (
+        <div style={{ padding: '100px 20px', textAlign: 'center' }}>
+            <h2 className="font-['Inter'] text-[24px] font-bold text-[#1a1a18] mb-4">Piece Not Found</h2>
+            <p className="text-[#888] mb-8">The piece you're looking for might have moved or been retired.</p>
+            <Link to="/" className="inline-block px-8 py-3 bg-[#1a1a18] text-white rounded-[12px] font-bold text-[14px]">Back to Collection</Link>
+        </div>
+    );
+
+    const displayProduct = {
+        name: product.name,
+        price: product.price,
+        description: product.description,
+        colors: product.colors && product.colors.length > 0 ? product.colors : ['#1a1a18', '#8B7355', '#E0C9A6'],
+        images: product.images && product.images.length > 0 ? product.images : ["https://via.placeholder.com/1200x1200?text=No+Image"],
+        rating: product.ratings || 5,
+        reviewsNum: product.numReviews || 0,
+        features: product.features || [],
+        reviews: product.reviews || [],
+        ...product
+    };
+
+    const reviewsList = displayProduct.reviews.length > 0 ? displayProduct.reviews.map(r => ({
+        name: r.name,
+        date: new Date(r.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        stars: "⭐".repeat(r.rating),
+        text: `"${r.comment}"`
+    })) : [
+        {
+            name: "Prabott Concierge",
+            date: "Recent",
+            stars: "⭐⭐⭐⭐⭐",
+            text: `"Our latest addition to the collection. Be the first to share your experience with this piece."`
+        }
+    ];
 
     return (
         <div className="product-details-container font-inter">
@@ -89,25 +119,32 @@ const ProductDetails = () => {
                 {/* Left Column - Images */}
                 <div className="pd-image-section">
                     <div className="pd-main-image-wrapper">
-                        <img src={product.images[activeImage]} alt={product.name} className="pd-main-image" />
+                        <img src={displayProduct.images[activeImage] || displayProduct.images[0]} alt={displayProduct.name} className="pd-main-image" />
                     </div>
                     <div className="pd-thumbnails">
-                        {product.images.slice(1, 4).map((img, index) => (
-                            <div
-                                key={index}
-                                className={`pd-thumbnail-wrapper ${activeImage === index + 1 ? 'active' : ''}`}
-                                onClick={() => setActiveImage(index + 1)}
-                            >
-                                <img src={img} alt={`Thumbnail ${index + 1}`} className="pd-thumbnail" />
-                            </div>
-                        ))}
+                        {[0, 1, 2].map((index) => {
+                            const imgIndex = index + 1;
+                            const img = displayProduct.images[imgIndex];
+
+                            return img ? (
+                                <div
+                                    key={index}
+                                    className={`pd-thumbnail-wrapper ${activeImage === imgIndex ? 'active' : ''}`}
+                                    onClick={() => setActiveImage(imgIndex)}
+                                >
+                                    <img src={img} alt={`Thumbnail ${imgIndex}`} className="pd-thumbnail" />
+                                </div>
+                            ) : (
+                                <div key={index} className="pd-thumbnail-wrapper placeholder" style={{ cursor: 'default' }}></div>
+                            );
+                        })}
                     </div>
                 </div>
 
                 {/* Right Column - Info */}
                 <div className="pd-info-section">
-                    <h1 className="pd-product-title">{product.name}</h1>
-                    <div className="pd-product-price">${product.price.toFixed(2)}</div>
+                    <h1 className="pd-product-title">{displayProduct.name}</h1>
+                    <div className="pd-product-price">${displayProduct.price.toFixed(2)}</div>
 
                     {/* Description Accordion */}
                     <div className={`pd-accordion ${descOpen ? 'open' : ''}`}>
@@ -126,7 +163,7 @@ const ProductDetails = () => {
                     <div className="pd-color-section">
                         <h3 className="pd-section-label">Color</h3>
                         <div className="pd-color-options">
-                            {product.colors.map((color, idx) => (
+                            {displayProduct.colors.map((color, idx) => (
                                 <button
                                     key={idx}
                                     className={`pd-color-btn ${selectedColor === idx ? 'selected' : ''}`}
@@ -153,50 +190,35 @@ const ProductDetails = () => {
                         <button className="pd-btn-buy-now" onClick={handleBuyNow}>Buy Now</button>
                     </div>
 
-                    {/* Shipping Accordion */}
-                    <div className={`pd-accordion pd-shipping-accordion ${shippingOpen ? 'open' : ''}`}>
-                        <div className="pd-accordion-header" onClick={() => setShippingOpen(!shippingOpen)}>
-                            <h3>Shipping</h3>
-                            <span className="pd-accordion-icon">{shippingOpen ? '∧' : '∨'}</span>
+                    {/* Features Accordion */}
+                    <div className={`pd-accordion pd-shipping-accordion ${featuresOpen ? 'open' : ''}`}>
+                        <div className="pd-accordion-header" onClick={() => setFeaturesOpen(!featuresOpen)}>
+                            <h3>Product Features</h3>
+                            <span className="pd-accordion-icon">{featuresOpen ? '∧' : '∨'}</span>
                         </div>
-                        {shippingOpen && (
+                        {featuresOpen && (
                             <div className="pd-accordion-content pd-shipping-grid">
-                                <div className="pd-shipping-item">
-                                    <div className="pd-shipping-icon">
-                                        %
+                                {displayProduct.features.length > 0 ? displayProduct.features.map((f, i) => (
+                                    <div key={i} className="pd-shipping-item">
+                                        <div className="pd-shipping-icon">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                        </div>
+                                        <div>
+                                            <div className="pd-shipping-label">{f.label}</div>
+                                            <div className="pd-shipping-value">{f.value}</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div className="pd-shipping-label">Discount</div>
-                                        <div className="pd-shipping-value">Disc 50%</div>
+                                )) : (
+                                    <div className="pd-shipping-item">
+                                        <div className="pd-shipping-icon">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                        </div>
+                                        <div>
+                                            <div className="pd-shipping-label">Craftsmanship</div>
+                                            <div className="pd-shipping-value">Premium Quality Assured</div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="pd-shipping-item">
-                                    <div className="pd-shipping-icon">
-                                        📦
-                                    </div>
-                                    <div>
-                                        <div className="pd-shipping-label">Package</div>
-                                        <div className="pd-shipping-value">Reg</div>
-                                    </div>
-                                </div>
-                                <div className="pd-shipping-item">
-                                    <div className="pd-shipping-icon">
-                                        ⏱
-                                    </div>
-                                    <div>
-                                        <div className="pd-shipping-label">Delivery Time</div>
-                                        <div className="pd-shipping-value">3-4 Working Days</div>
-                                    </div>
-                                </div>
-                                <div className="pd-shipping-item">
-                                    <div className="pd-shipping-icon">
-                                        🚚
-                                    </div>
-                                    <div>
-                                        <div className="pd-shipping-label">Arrive</div>
-                                        <div className="pd-shipping-value">0 - 12 Oct 2024</div>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -226,20 +248,43 @@ const ProductDetails = () => {
                         </div>
                     </div>
                     <div className="pd-reviews-right">
-                        <div className="pd-review-card">
-                            <div className="pd-review-header">
-                                <div className="pd-reviewer-name">Obayedul</div>
-                                <div className="pd-review-date">13 Oct 2024</div>
+                        <div className="pd-review-card" style={{ display: "flex", flexDirection: "column", minHeight: "220px", justifyContent: "space-between", position: "relative" }}>
+
+                            <button
+                                onClick={() => setActiveReview((prev) => (prev > 0 ? prev - 1 : reviewsList.length - 1))}
+                                style={{ position: "absolute", left: "-20px", top: "50%", transform: "translateY(-50%)", width: 40, height: 40, borderRadius: "50%", border: "1px solid #eee", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", zIndex: 2 }}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveReview((prev) => (prev < reviewsList.length - 1 ? prev + 1 : 0))}
+                                style={{ position: "absolute", right: "-20px", top: "50%", transform: "translateY(-50%)", width: 40, height: 40, borderRadius: "50%", border: "1px solid #eee", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", zIndex: 2 }}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </button>
+
+                            <div key={activeReview} className="review-content-animated">
+                                <div className="pd-review-header">
+                                    <div className="pd-reviewer-name">{reviewsList[activeReview].name}</div>
+                                    <div className="pd-review-date">{reviewsList[activeReview].date}</div>
+                                </div>
+                                <div className="pd-review-stars">
+                                    {reviewsList[activeReview].stars}
+                                </div>
+                                <p className="pd-review-text">
+                                    {reviewsList[activeReview].text}
+                                </p>
                             </div>
-                            <div className="pd-review-stars">
-                                ⭐⭐⭐⭐⭐
-                            </div>
-                            <p className="pd-review-text">
-                                "Loose-fit sweatshirt hoodie in medium weight cotton-blend fabric with a generous, but not oversized silhouette. Jersey-lined, drawstring hood, dropped shoulders, long sleeves."
-                            </p>
                             <div className="pd-review-dots">
-                                <span className="active"></span>
-                                <span></span>
+                                {reviewsList.map((_, idx) => (
+                                    <span
+                                        key={idx}
+                                        className={idx === activeReview ? "active" : ""}
+                                        onClick={() => setActiveReview(idx)}
+                                        style={{ cursor: "pointer" }}
+                                    ></span>
+                                ))}
                             </div>
                         </div>
                     </div>

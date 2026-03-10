@@ -22,12 +22,34 @@ const ProductDetails = lazy(() => import('./components/ProductDetails/ProductDet
 const AuthPage = lazy(() => import('./components/Auth/AuthDashboard'));
 
 // Lazy-load category pages
-const PremiumCategoryApp = lazy(() => import('./components/prabott/PremiumCategoryApp'));
+const PremiumCategoryApp = lazy(() => import('./components/CategoryPage/PremiumCategoryApp'));
+
+// Lazy-load admin pages
+const AdminLayout = lazy(() => import('./admin/components/AdminLayout'));
+const AdminDashboard = lazy(() => import('./admin/pages/Dashboard'));
+const AdminProducts = lazy(() => import('./admin/pages/Products'));
+const AdminAddProduct = lazy(() => import('./admin/pages/AddProduct'));
+const AdminEditProduct = lazy(() => import('./admin/pages/EditProduct'));
+const AdminOrders = lazy(() => import('./admin/pages/Orders'));
+const AdminOrderDetails = lazy(() => import('./admin/pages/OrderDetails'));
+const AdminUsers = lazy(() => import('./admin/pages/Users'));
+const AdminUserDetails = lazy(() => import('./admin/pages/UserDetails'));
+const AdminAnalytics = lazy(() => import('./admin/pages/Analytics'));
+const AdminSettings = lazy(() => import('./admin/pages/Settings'));
 
 /** Protected Route Guard */
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
+  return children;
+}
+
+/** Admin Route Guard */
+function AdminRoute({ children }) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  // Assuming user role could be 'admin'
+  if (user.role !== 'admin') return <Navigate to="/" replace />;
   return children;
 }
 
@@ -133,9 +155,39 @@ export default function App() {
                   </ProtectedRoute>
                 } />
 
-                {/* Account Dashboard moved into MainLayout to preserve Navbar, or keep it outside? 
-                    The previous App.jsx had it outside. I'll keep it outside for consistency but add protection.
-                 */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#F7F5F2" }} />}>
+                      <AuthPage initialScreen="dashboard" />
+                    </Suspense>
+                  </ProtectedRoute>
+                } />
+              </Route>
+
+              {/* Admin routing section - completely separate from MainLayout */}
+              <Route path="/admin" element={
+                <AdminRoute>
+                  <Suspense fallback={
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f8fafc' }}>
+                      <div style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                    </div>
+                  }>
+                    <AdminLayout />
+                  </Suspense>
+                </AdminRoute>
+              }>
+                {/* Nested admin routes rendered via <Outlet /> in AdminLayout */}
+                <Route index element={<AdminDashboard />} />
+                <Route path="products" element={<AdminProducts />} />
+                <Route path="products/add" element={<AdminAddProduct />} />
+                <Route path="products/edit/:id" element={<AdminEditProduct />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="orders/:id" element={<AdminOrderDetails />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="users/:id" element={<AdminUserDetails />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="settings" element={<AdminSettings />} />
               </Route>
 
               {/* Auth routes — no shared navbar */}
@@ -148,13 +200,6 @@ export default function App() {
                 <Suspense fallback={<div style={{ minHeight: "100vh", background: "#F7F5F2" }} />}>
                   <AuthPage initialScreen="signup" />
                 </Suspense>
-              } />
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<div style={{ minHeight: "100vh", background: "#F7F5F2" }} />}>
-                    <AuthPage initialScreen="dashboard" />
-                  </Suspense>
-                </ProtectedRoute>
               } />
             </Routes>
           </WishlistProvider>

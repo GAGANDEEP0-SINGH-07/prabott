@@ -1,0 +1,50 @@
+export const CATEGORY_METADATA = {
+    "Furniture": {
+        hero: "https://images.unsplash.com/photo-1618220179428-22790b461013?w=1600&q=80",
+        tagline: "Timeless pieces for modern living",
+        description: "Explore our curated collection of premium furniture, handcrafted with the finest materials for enduring beauty and exceptional comfort.",
+        filters: ["All", "Sofas", "Chairs", "Tables", "Storage", "Beds", "Cabinets"],
+        color: "#c8b99a",
+        accent: "#8B7355",
+    },
+    "Outdoor": {
+        hero: "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=1600&q=80",
+        tagline: "Bring luxury to the open air",
+        description: "Premium outdoor furniture designed to withstand the elements while elevating your garden, patio, and terrace into an elegant outdoor sanctuary.",
+        filters: ["All", "Garden Sets", "Loungers", "Patio Chairs", "Benches", "Planters", "Umbrellas"],
+        color: "#a8c4a2",
+        accent: "#5B8A51",
+    },
+    "Lighting": {
+        hero: "https://images.unsplash.com/photo-1513506003901-1e6a35086571?w=1600&q=80",
+        tagline: "Illuminate your world with elegance",
+        description: "Every room tells a story through light. Discover our curated collection of handcrafted luminaires that blend artistry with function.",
+        filters: ["All", "Floor Lamps", "Pendant Lights", "Table Lamps", "Wall Sconces", "Chandeliers", "LED"],
+        color: "#d4c89a",
+        accent: "#B8A44E",
+    },
+    "Dining": {
+        hero: "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=1600&q=80",
+        tagline: "Where meals become memories",
+        description: "Craft the perfect dining experience with our elegant tables, chairs, and accessories — designed for families who appreciate beauty at every meal.",
+        filters: ["All", "Dining Tables", "Dining Chairs", "Bar Stools", "Benches", "Buffets", "Sets"],
+        color: "#c4a882",
+        accent: "#9A7B52",
+    },
+    "Bathrooms": {
+        hero: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=1600&q=80",
+        tagline: "Spa-like serenity at home",
+        description: "Transform your bathroom into a private sanctuary. Our bathroom collection merges functionality with refined aesthetics for a truly luxurious experience.",
+        filters: ["All", "Vanities", "Mirrors", "Storage", "Towel Rails", "Bath Accessories", "Freestanding"],
+        color: "#a8b8c4",
+        accent: "#6B8A9E",
+    },
+    "Mirrors & Décor": {
+        hero: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1600&q=80",
+        tagline: "Reflect your personal style",
+        description: "From statement mirrors to curated décor objects, add the finishing touches that make your space feel truly complete and uniquely yours.",
+        filters: ["All", "Wall Mirrors", "Floor Mirrors", "Decorative Objects", "Vases", "Candles", "Art Prints"],
+        color: "#c4b8a8",
+        accent: "#8B7B6B",
+    }
+};

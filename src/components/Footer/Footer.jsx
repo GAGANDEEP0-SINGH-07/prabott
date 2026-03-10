@@ -7,8 +7,8 @@ export default function Footer() {
             {/* ══ Giant faded brand name ══ */}
             <div className="relative h-[180px] max-[560px]:h-[110px] overflow-hidden flex items-end border-b border-[#ebebeb]">
                 <span
-                    className="absolute bottom-[-8px] left-0 font-extrabold text-[#e0e0e0] tracking-[-0.04em] leading-none whitespace-nowrap select-none max-[560px]:text-[4.5rem]"
-                    style={{ fontSize: 'clamp(5rem, 16vw, 13.5rem)', paddingLeft: '28px' }}
+                    className="absolute bottom-[-8px] left-0 font-extrabold text-[#e0e0e0] tracking-[-0.04em] leading-none whitespace-nowrap select-none min-[561px]:text-[clamp(5rem,16vw,13.5rem)] max-[560px]:text-[4.5rem]"
+                    style={{ paddingLeft: '28px' }}
                 >
                     PRABOTT
                 </span>

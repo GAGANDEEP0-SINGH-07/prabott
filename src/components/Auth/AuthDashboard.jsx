@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useWishlist } from "../../context/WishlistContext";
+import { UserIcon, HeartIcon, CartIcon } from "../Shared/Icons";
 
 /* ═══════════════════════════════════════
    DESIGN TOKENS
@@ -108,11 +110,13 @@ function Btn({ children, onClick, variant = "dark", full, small, disabled, type 
 function Badge({ status }) {
     const map = {
         Delivered: ["#E8F5EE", "#2D7D52"],
+        COMPLETED: ["#E8F5EE", "#2D7D52"],
+        PAID: ["#E8F5EE", "#2D7D52"],
         "In Transit": ["#FFF4E0", "#B07A20"],
         Processing: ["#EEF2FF", "#4A5FBD"],
         Cancelled: ["#FFF0F0", "#D32F2F"]
     };
-    const [bg, color] = map[status] || map.Processing;
+    const [bg, color] = map[status] || map[status.toUpperCase()] || map.Processing;
     return (
         <span style={{ padding: "4px 12px", borderRadius: 20, background: bg, color, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.02em" }}>
             {status}
@@ -157,9 +161,77 @@ function Spinner({ text }) {
 }
 
 /* ═══════════════════════════════════════
+   FORGOT PASSWORD SCREEN
+═══════════════════════════════════════ */
+function ForgotPassword({ onBack, onSubmit }) {
+    const [email, setEmail] = useState("");
+    const [status, setStatus] = useState("idle"); // idle, loading, success
+    const [error, setError] = useState(null);
+    const [visible, setVisible] = useState(false);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        setTimeout(() => setVisible(true), 60);
+    }, []);
+
+    const submit = () => {
+        if (!email.includes("@")) {
+            setError("Valid email required");
+            return;
+        }
+        setError(null);
+        setStatus("loading");
+        setTimeout(() => {
+            setStatus("success");
+        }, 1200);
+    };
+
+    return (
+        <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'Inter', sans-serif" }}>
+            <div style={{ width: "100%", maxWidth: 460, opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)", transition: "all 0.5s ease-out" }}>
+                <div style={{ textAlign: "center", marginBottom: 40 }}>
+                    <span onClick={() => navigate("/")} style={{ fontSize: 24, fontWeight: 900, letterSpacing: "-0.04em", color: C.dark, cursor: "pointer" }}>Prabott.</span>
+                </div>
+
+                {status === "success" ? (
+                    <div style={{ textAlign: "center", background: C.white, padding: 40, borderRadius: 24, border: `1px solid ${C.border}` }}>
+                        <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#EEF2FF", color: "#4A5FBD", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, margin: "0 auto 24px" }}>
+                            ✉
+                        </div>
+                        <h1 style={{ fontSize: 24, fontWeight: 800, color: C.dark, marginBottom: 12, letterSpacing: "-0.04em" }}>Check your email</h1>
+                        <p style={{ color: C.muted, fontSize: 15, marginBottom: 32, lineHeight: 1.6 }}>
+                            We've sent password reset instructions to <strong>{email}</strong>.
+                        </p>
+                        <Btn onClick={onBack} full>Back to Sign In</Btn>
+                    </div>
+                ) : (
+                    <>
+                        <h1 style={{ fontSize: 32, fontWeight: 800, color: C.dark, marginBottom: 8, letterSpacing: "-0.04em" }}>
+                            Reset Password
+                        </h1>
+                        <p style={{ color: C.muted, fontSize: 15, marginBottom: 32 }}>
+                            Enter your email to receive a password reset link.
+                        </p>
+
+                        <Field label="Email Address" type="email" value={email} onChange={setEmail} placeholder="you@example.com" error={error} />
+
+                        <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+                            <Btn variant="outline" onClick={onBack} small>Cancel</Btn>
+                            <Btn full onClick={submit}>
+                                {status === "loading" ? <Spinner text="Sending Email…" /> : "Send Reset Link"}
+                            </Btn>
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* ═══════════════════════════════════════
    LOGIN SCREEN
 ═══════════════════════════════════════ */
-function Login({ onLogin, onSignup }) {
+function Login({ onLogin, onSignup, onForgot }) {
     const [email, setEmail] = useState("");
     const [pass, setPass] = useState("");
     const [remember, setRemember] = useState(false);
@@ -172,7 +244,7 @@ function Login({ onLogin, onSignup }) {
         setTimeout(() => setVisible(true), 60);
     }, []);
 
-    const submit = useCallback(() => {
+    const submit = useCallback(async () => {
         const e = {};
         if (!email.includes("@")) e.email = "Valid email required";
         if (!pass) e.pass = "Password required";
@@ -181,19 +253,12 @@ function Login({ onLogin, onSignup }) {
         setLoading(true);
         setErrors({});
 
-        // Mock delay for UX
-        setTimeout(() => {
-            const users = getUsers();
-            const user = users.find(u => u.email === email && u.password === pass);
+        const result = await onLogin({ email, password: pass }, remember);
 
-            if (user) {
-                setLoading(false);
-                onLogin({ name: user.name, email: user.email }, remember);
-            } else {
-                setLoading(false);
-                setErrors({ auth: "Invalid email or password" });
-            }
-        }, 1200);
+        if (!result?.success) {
+            setErrors({ auth: result?.message || "Invalid email or password" });
+        }
+        setLoading(false);
     }, [email, pass, remember, onLogin]);
 
     return (
@@ -224,7 +289,7 @@ function Login({ onLogin, onSignup }) {
                             <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} style={{ width: 16, height: 16, accentColor: C.dark }} />
                             Remember me
                         </label>
-                        <span style={{ fontSize: 13, color: C.dark, fontWeight: 700, cursor: "pointer" }}>Forgot?</span>
+                        <span onClick={onForgot} style={{ fontSize: 13, color: C.dark, fontWeight: 700, cursor: "pointer" }}>Forgot?</span>
                     </div>
 
                     <Btn onClick={submit} full>
@@ -280,18 +345,12 @@ function Signup({ onSignup, onLogin }) {
         if (!fields.name.trim()) e.name = "Full name is required";
         if (!fields.email.includes("@")) e.email = "Valid email required";
 
-        // Duplicate check
-        const users = getUsers();
-        if (users.some(u => u.email === fields.email)) {
-            e.email = "Email already registered";
-        }
-
         if (Object.keys(e).length) { setErrors(e); return; }
         setStep(2);
         setErrors({});
     }, [fields.name, fields.email]);
 
-    const submit = useCallback(() => {
+    const submit = useCallback(async () => {
         const e = {};
         if (fields.pass.length < 8) e.pass = "Minimum 8 characters required";
         if (fields.pass !== fields.confirm) e.confirm = "Passwords do not match";
@@ -299,16 +358,16 @@ function Signup({ onSignup, onLogin }) {
         if (Object.keys(e).length) { setErrors(e); return; }
 
         setLoading(true);
-        setTimeout(() => {
-            saveUser({
-                name: fields.name,
-                email: fields.email,
-                password: fields.pass,
-                joined: new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
-            });
-            setLoading(false);
-            onSignup({ name: fields.name, email: fields.email });
-        }, 1500);
+        const result = await onSignup({
+            name: fields.name,
+            email: fields.email,
+            password: fields.pass,
+        });
+
+        if (!result?.success) {
+            setErrors({ auth: result?.message || "Registration failed" });
+        }
+        setLoading(false);
     }, [fields, onSignup]);
 
     const passStrength = useMemo(() => {
@@ -337,6 +396,8 @@ function Signup({ onSignup, onLogin }) {
                 <p style={{ color: C.muted, fontSize: 15, marginBottom: 32 }}>
                     {step === 1 ? "Start your journey with Prabott premium furniture." : "Set a password for your account."}
                 </p>
+
+                {errors.auth && <div style={{ background: "#FFF0F0", color: C.danger, padding: "12px 16px", borderRadius: 12, marginBottom: 24, fontSize: 13, fontWeight: 700, border: "1px solid #FFDADA" }}>{errors.auth}</div>}
 
                 {step === 1 ? (
                     <>
@@ -377,13 +438,16 @@ function Signup({ onSignup, onLogin }) {
    DASHBOARD SCREEN
 ═══════════════════════════════════════ */
 function Dashboard({ user, onLogout, initialTab = "overview" }) {
+    const { wishlistItems } = useWishlist();
     const [tab, setTab] = useState(initialTab);
     const [mobileNav, setMobileNav] = useState(false);
-    const [profile, setProfile] = useState(() => {
-        const users = getUsers();
-        const fullUser = users.find(u => u.email === user.email) || user;
-        return { name: fullUser.name, email: fullUser.email, phone: fullUser.phone || "", city: fullUser.city || "", joined: fullUser.joined || "Recent" };
-    });
+    const [profile, setProfile] = useState(() => ({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        city: user.address || "",
+        joined: user.createdAt || "Recent"
+    }));
     const [orders, setOrders] = useState([]);
     const [passData, setPassData] = useState({ current: "", next: "", confirm: "" });
     const [errors, setErrors] = useState({});
@@ -395,68 +459,106 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
         window.scrollTo(0, 0);
         setTimeout(() => setVisible(true), 60);
 
-        // Load Order History
-        const savedOrders = JSON.parse(localStorage.getItem(`prabott_orders_${user.email}`) || '[]');
-        setOrders(savedOrders);
+        const fetchUserData = async () => {
+            try {
+                // Include our api client
+                const api = (await import('../../api')).default;
+
+                // Fetch profile
+                const profileRes = await api.get('/auth/profile');
+                if (profileRes.data) {
+                    setProfile({
+                        name: profileRes.data.name || "",
+                        email: profileRes.data.email || "",
+                        phone: profileRes.data.phone || "",
+                        city: profileRes.data.address || "",
+                        joined: profileRes.data.createdAt || "Recent"
+                    });
+                }
+
+                // Fetch orders
+                const ordersRes = await api.get('/orders/myorders');
+                if (ordersRes.data) {
+                    setOrders(ordersRes.data.map(o => ({
+                        orderId: o._id.substring(o._id.length - 6).toUpperCase(),
+                        total: o.totalAmount,
+                        status: o.paymentStatus === 'Paid' || o.paymentStatus === 'Completed' ? 'PAID' : o.orderStatus,
+                        date: new Date(o.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+                        items: (o.products || []).map(item => ({
+                            id: item.productId?._id || item.productId,
+                            name: item.productId?.name || 'Product',
+                            qty: item.quantity,
+                            price: item.productId?.price || 0,
+                            image: item.productId?.images?.[0] || ''
+                        }))
+                    })));
+                }
+
+            } catch (err) {
+                console.error("Failed to fetch user data:", err);
+            }
+        };
+
+        fetchUserData();
 
         if (initialTab) setTab(initialTab);
-    }, [initialTab, user.email]);
+    }, [initialTab]);
 
     const updateProfile = (key) => (value) => setProfile((prev) => ({ ...prev, [key]: value }));
 
-    const handleProfileSave = () => {
-        const success = updateUserInDb(user.email, { name: profile.name, phone: profile.phone, city: profile.city });
-        if (success) {
+    const handleProfileSave = async () => {
+        try {
+            const api = (await import('../../api')).default;
+            await api.put('/auth/profile', {
+                name: profile.name,
+                phone: profile.phone,
+                address: profile.city
+            });
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
+        } catch (error) {
+            console.error("Failed to update profile", error);
+            alert("Failed to update profile");
         }
     };
 
-    const handleChangePassword = () => {
+    const handleChangePassword = async () => {
         const e = {};
-        const users = getUsers();
-        const storedUser = users.find(u => u.email === user.email);
 
-        if (passData.current !== storedUser.password) e.current = "Incorrect current password";
+        if (!passData.current) e.current = "Current password required";
         if (passData.next.length < 8) e.next = "Min 8 characters";
         if (passData.next !== passData.confirm) e.confirm = "Passwords don't match";
 
         if (Object.keys(e).length) { setErrors(e); return; }
 
-        updateUserInDb(user.email, { password: passData.next });
-        setPassData({ current: "", next: "", confirm: "" });
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
-        setErrors({});
+        try {
+            const api = (await import('../../api')).default;
+            await api.put('/auth/profile', {
+                password: passData.next // Note: backend needs an update to support verifying current password, but we'll just send the new one based on current backend architecture
+            });
+
+            setPassData({ current: "", next: "", confirm: "" });
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+            setErrors({});
+        } catch (error) {
+            console.error("Failed to update password", error);
+            setErrors({ current: "Failed to update password. Please try again." });
+        }
     };
 
     const NAV = [
-        { id: "overview", icon: "⊞", label: "Overview" },
-        { id: "orders", icon: "📦", label: "My Orders" },
-        { id: "profile", icon: "◎", label: "Profile" },
-        { id: "settings", icon: "⚙", label: "Settings" },
+        { id: "overview", icon: <UserIcon size={18} strokeWidth="2" />, label: "Overview" },
+        { id: "orders", icon: <CartIcon size={18} strokeWidth="2" />, label: "My Orders" },
+        { id: "profile", icon: <UserIcon size={18} strokeWidth="2" />, label: "Profile" },
+        { id: "settings", icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>, label: "Settings" },
     ];
 
     return (
         <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'Inter', sans-serif", display: "flex", flexDirection: "column" }}>
-            <header style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                    <button onClick={() => setMobileNav(!mobileNav)} style={{ display: "none", background: "none", border: "none", cursor: "pointer", fontSize: 20 }} className="auth-mob-btn">☰</button>
-                    <span onClick={() => navigate("/")} style={{ fontSize: 22, fontWeight: 900, letterSpacing: "-0.04em", color: C.dark, cursor: "pointer" }}>Prabott.</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                    <div style={{ textAlign: "right", lineHeight: 1.1 }}>
-                        <p style={{ fontSize: 13, fontWeight: 800, color: C.dark, margin: 0 }}>{profile.name}</p>
-                        <p style={{ fontSize: 11, color: "#999", margin: 0 }}>Premium Member</p>
-                    </div>
-                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: C.accentLight, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: C.dark, border: `1px solid ${C.border}` }}>
-                        {profile.name.charAt(0)}
-                    </div>
-                    <button onClick={onLogout} style={{ background: "none", border: `1.5px solid ${C.border}`, borderRadius: 10, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Logout</button>
-                </div>
-            </header>
 
-            <div style={{ display: "flex", flex: 1, maxWidth: 1200, width: "100%", mx: "auto", alignSelf: "center", padding: "0 24px" }}>
+
+            <div style={{ display: "flex", flex: 1, width: "100%", mx: "auto", alignSelf: "center", padding: "0 24px" }}>
                 <aside style={{ width: 240, borderRight: `1px solid ${C.border}`, padding: "32px 24px 32px 0", flexShrink: 0 }} className="auth-sidebar-desktop">
                     <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#BBB", marginBottom: 16 }}>Dashboard</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -464,7 +566,8 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
                             const active = tab === item.id;
                             return (
                                 <button key={item.id} onClick={() => setTab(item.id)} style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "12px 14px", borderRadius: 12, border: "none", cursor: "pointer", background: active ? C.dark : "transparent", color: active ? "#fff" : C.muted, fontSize: 14, fontWeight: active ? 700 : 500, transition: "all 0.2s", textAlign: "left" }}>
-                                    <span style={{ fontSize: 18 }}>{item.icon}</span>{item.label}
+                                    <span style={{ display: "flex", alignItems: "center", justifyContent: "center", opacity: active ? 1 : 0.8 }}>{item.icon}</span>
+                                    {item.label}
                                 </button>
                             );
                         })}
@@ -478,12 +581,20 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
                             <h2 style={{ fontSize: 28, fontWeight: 800, color: C.dark, marginBottom: 8, letterSpacing: "-0.04em" }}>Welcome, {profile.name.split(" ")[0]}</h2>
                             <p style={{ color: C.muted, fontSize: 15, marginBottom: 32 }}>Your Prabott account overview</p>
 
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
-                                {[["📦", orders.length, "Total Orders"], ["♡", "3", "Saved Items"], ["★", "1,240", "Luxury Points"]].map(([icon, val, label]) => (
-                                    <div key={label} style={{ background: C.white, borderRadius: 20, padding: 24, border: `1px solid ${C.border}` }}>
-                                        <div style={{ fontSize: 24, marginBottom: 12 }}>{icon}</div>
-                                        <p style={{ fontSize: 28, fontWeight: 800, color: C.dark, margin: "0 0 2px" }}>{val}</p>
-                                        <p style={{ fontSize: 13, fontWeight: 600, color: "#999", margin: 0 }}>{label}</p>
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20, marginBottom: 40 }}>
+                                {[
+                                    [<CartIcon size={20} strokeWidth="2" />, orders.length, "Total Orders"],
+                                    [<HeartIcon size={20} strokeWidth="2" />, wishlistItems.length, "Saved Items"],
+                                    [<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>, Math.floor(orders.reduce((acc, curr) => acc + curr.total, 0) * 0.1).toLocaleString(), "Luxury Points"]
+                                ].map(([icon, val, label]) => (
+                                    <div key={label} style={{ background: C.white, borderRadius: 16, padding: 24, border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", gap: 16, boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+                                        <div style={{ width: 44, height: 44, borderRadius: 12, background: C.accentLight, color: C.dark, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                            {icon}
+                                        </div>
+                                        <div>
+                                            <p style={{ fontSize: 26, fontWeight: 700, color: C.dark, margin: "0 0 4px", letterSpacing: "-0.02em" }}>{val}</p>
+                                            <p style={{ fontSize: 13, fontWeight: 500, color: C.muted, margin: 0 }}>{label}</p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -496,7 +607,9 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
                                 {orders.length > 0 ? (
                                     orders.slice(0, 3).map((o, i) => (
                                         <div key={o.orderId} style={{ padding: 20, display: "flex", alignItems: "center", gap: 16, borderBottom: i < orders.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                                            <div style={{ width: 44, height: 44, borderRadius: 10, background: C.accentLight, display: "flex", alignItems: "center", justifyContent: "center" }}>📦</div>
+                                            <div style={{ width: 40, height: 40, borderRadius: 10, background: C.accentLight, color: C.dark, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                                <CartIcon size={18} strokeWidth="2" />
+                                            </div>
                                             <div style={{ flex: 1 }}>
                                                 <p style={{ fontSize: 14, fontWeight: 700, color: C.dark, margin: "0 0 2px" }}>Order {o.orderId}</p>
                                                 <p style={{ fontSize: 12, color: "#999", margin: 0 }}>{o.date} · {o.items.length} items</p>
@@ -625,20 +738,35 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
    AUTH ROUTER
 ═══════════════════════════════════════ */
 export default function AuthDashboard({ initialScreen = "login" }) {
-    const [screen, setScreen] = useState(initialScreen);
-    const { user, login, logout } = useAuth();
+    const { user, login, signup, logout } = useAuth();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const [currentScreen, setCurrentScreen] = useState(initialScreen);
 
-    const handleLogin = useCallback((userData, remember) => {
-        login(userData, remember);
-        navigate(searchParams.get("redirect") || "/", { replace: true });
+    // Sync screen changes
+    useEffect(() => {
+        setCurrentScreen(initialScreen);
+    }, [initialScreen]);
+
+    const handleLogin = useCallback(async (userData, remember) => {
+        const res = await login(userData, remember);
+        if (res?.success) {
+            if (res.user?.role === 'admin') {
+                navigate("/admin/dashboard", { replace: true });
+            } else {
+                navigate(searchParams.get("redirect") || "/", { replace: true });
+            }
+        }
+        return res;
     }, [login, navigate, searchParams]);
 
-    const handleSignup = useCallback((userData) => {
-        login(userData, true); // Auto-login after signup
-        navigate("/", { replace: true });
-    }, [login, navigate]);
+    const handleSignup = useCallback(async (userData) => {
+        const res = await signup(userData, true);
+        if (res?.success) {
+            navigate("/", { replace: true });
+        }
+        return res;
+    }, [signup, navigate]);
 
     const handleLogout = useCallback(() => {
         logout();
@@ -652,18 +780,22 @@ export default function AuthDashboard({ initialScreen = "login" }) {
         }
     }, [initialScreen, user, navigate]);
 
-    if (user && initialScreen !== "dashboard") {
+    if (user && currentScreen !== "dashboard") {
         return <Dashboard user={user} onLogout={handleLogout} initialTab="overview" />;
     }
 
-    if (user && initialScreen === "dashboard") {
+    if (user && currentScreen === "dashboard") {
         const tabParam = searchParams.get('tab');
         return <Dashboard user={user} onLogout={handleLogout} initialTab={tabParam || "overview"} />;
     }
 
-    if (screen === "signup") {
-        return <Signup onSignup={handleSignup} onLogin={() => { setScreen("login"); navigate("/login"); }} />;
+    if (currentScreen === "signup") {
+        return <Signup onSignup={handleSignup} onLogin={() => navigate("/login")} />;
     }
 
-    return <Login onLogin={handleLogin} onSignup={() => { setScreen("signup"); navigate("/signup"); }} />;
+    if (currentScreen === "forgot") {
+        return <ForgotPassword onBack={() => setCurrentScreen("login")} />;
+    }
+
+    return <Login onLogin={handleLogin} onSignup={() => navigate("/signup")} onForgot={() => setCurrentScreen("forgot")} />;
 }

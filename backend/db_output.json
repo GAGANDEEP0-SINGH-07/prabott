@@ -1,0 +1,153 @@
+[dotenv@17.3.1] injecting env (4) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+DB_PRODUCTS: [
+  {
+    "_id": "69b01b47bbfd2cc363310657",
+    "name": "WalnutGrace Lounge Chair",
+    "description": "Explore our curated collection of premium furniture, handcrafted with the finest materials for enduring beauty and exceptional comfort.",
+    "price": 1450,
+    "category": "Chairs",
+    "stock": 10,
+    "images": [
+      "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600&q=80"
+    ],
+    "ratings": 5,
+    "__v": 0,
+    "createdAt": "2026-03-10T13:23:19.117Z",
+    "updatedAt": "2026-03-10T13:23:19.117Z"
+  },
+  {
+    "_id": "69b01b47bbfd2cc363310658",
+    "name": "Nordic Cloud Sofa",
+    "description": "Explore our curated collection of premium furniture, handcrafted with the finest materials for enduring beauty and exceptional comfort.",
+    "price": 2950,
+    "category": "Sofas",
+    "stock": 10,
+    "images": [
+      "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80"
+    ],
+    "ratings": 5,
+    "__v": 0,
+    "createdAt": "2026-03-10T13:23:19.118Z",
+    "updatedAt": "2026-03-10T13:23:19.118Z"
+  },
+  {
+    "_id": "69b01b47bbfd2cc363310659",
+    "name": "Harmony Oak Sideboard",
+    "description": "Explore our curated collection of premium furniture, handcrafted with the finest materials for enduring beauty and exceptional comfort.",
+    "price": 1150,
+    "category": "Storage",
+    "stock": 10,
+    "images": [
+      "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600&q=80"
+    ],
+    "ratings": 4,
+    "__v": 0,
+    "createdAt": "2026-03-10T13:23:19.118Z",
+    "updatedAt": "2026-03-10T13:23:19.118Z"
+  },
+  {
+    "_id": "69b01b47bbfd2cc36331065a",
+    "name": "ChicHaven Armchair",
+    "description": "Explore our curated collection of premium furniture, handcrafted with the finest materials for enduring beauty and exceptional comfort.",
+    "price": 1540,
+    "category": "Chairs",
+    "stock": 10,
+    "images": [
+      "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=600&q=80"
+    ],
+    "ratings": 5,
+    "__v": 0,
+    "createdAt": "2026-03-10T13:23:19.118Z",
+    "updatedAt": "2026-03-10T13:23:19.118Z"
+  },
+  {
+    "_id": "69b01b47bbfd2cc36331065b",
+    "name": "Luna Leather Bean Sofa",
+    "description": "Explore our curated collection of premium furniture, handcrafted with the finest materials for enduring beauty and exceptional comfort.",
+    "price": 3240,
+    "category": "Sofas",
+    "stock": 10,
+    "images": [
+      "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=600&q=80"
+    ],
+    "ratings": 5,
+    "__v": 0,
+    "createdAt": "2026-03-10T13:23:19.118Z",
+    "updatedAt": "2026-03-10T13:23:19.118Z"
+  },
+  {
+    "_id": "69b01b47bbfd2cc36331065c",
+    "name": "Vertex Patio Chair",
+    "description": "Explore our curated collection of premium furniture, handcrafted with the finest materials for enduring beauty and exceptional comfort.",
+    "price": 1650,
+    "category": "Chairs",
+    "stock": 10,
+    "images": [
+      "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=600&q=80"
+    ],
+    "ratings": 4,
+    "__v": 0,
+    "createdAt": "2026-03-10T13:23:19.118Z",
+    "updatedAt": "2026-03-10T13:23:19.118Z"
+  },
+  {
+    "_id": "69b01b47bbfd2cc36331065d",
+    "name": "Nebula Family Sofa",
+    "description": "Explore our curated collection of premium furniture, handcrafted with the finest materials for enduring beauty and exceptional comfort.",
+    "price": 2590,
+    "category": "Sofas",
+    "stock": 10,
+    "images": [
+      "https://images.unsplash.com/photo-1549187774-b4e9b0445b41?w=600&q=80"
+    ],
+    "ratings": 5,
+    "__v": 0,
+    "createdAt": "2026-03-10T13:23:19.118Z",
+    "updatedAt": "2026-03-10T13:23:19.118Z"
+  },
+  {
+    "_id": "69b01b47bbfd2cc36331065e",
+    "name": "Minimalist Buffet Table",
+    "description": "Explore our curated collection of premium furniture, handcrafted with the finest materials for enduring beauty and exceptional comfort.",
+    "price": 1280,
+    "category": "Tables",
+    "stock": 10,
+    "images": [
+      "https://images.unsplash.com/photo-1611967164521-abae8fba4668?w=600&q=80"
+    ],
+    "ratings": 4,
+    "__v": 0,
+    "createdAt": "2026-03-10T13:23:19.118Z",
+    "updatedAt": "2026-03-10T13:23:19.118Z"
+  },
+  {
+    "_id": "69b01b47bbfd2cc36331065f",
+    "name": "Oak Extension Dining Table",
+    "description": "Explore our curated collection of premium furniture, handcrafted with the finest materials for enduring beauty and exceptional comfort.",
+    "price": 1890,
+    "category": "Tables",
+    "stock": 10,
+    "images": [
+      "https://images.unsplash.com/photo-1604074131665-7a4b13870ab3?w=600&q=80"
+    ],
+    "ratings": 5,
+    "__v": 0,
+    "createdAt": "2026-03-10T13:23:19.118Z",
+    "updatedAt": "2026-03-10T13:23:19.118Z"
+  },
+  {
+    "_id": "69b01b47bbfd2cc363310660",
+    "name": "Teak Garden Lounger",
+    "description": "Premium outdoor furniture designed to withstand the elements while elevating your garden, patio, and terrace into an elegant outdoor sanctuary.",
+    "price": 2100,
+    "category": "Loungers",
+    "stock": 10,
+    "images": [
+      "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=600&q=80"
+    ],
+    "ratings": 5,
+    "__v": 0,
+    "createdAt": "2026-03-10T13:23:19.118Z",
+    "updatedAt": "2026-03-10T13:23:19.118Z"
+  }
+]

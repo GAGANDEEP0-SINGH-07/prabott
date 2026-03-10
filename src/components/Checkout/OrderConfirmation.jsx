@@ -75,13 +75,14 @@ export default function OrderConfirmation() {
                                             <p className="text-[14px] font-semibold text-[#1A1A1A] truncate">{item.name}</p>
                                             <p className="text-[12px] text-[#666]">Qty: {item.qty}</p>
                                         </div>
-                                        <p className="text-[14px] font-bold text-[#1A1A1A]">${(item.price * item.qty).toLocaleString()}</p>
+                                        <p className="text-[14px] font-bold text-[#1A1A1A]">£{(item.price * item.qty).toLocaleString()}</p>
                                     </div>
                                 ))}
                                 <div className="mt-4 pt-4 border-t border-[#e8e4df] flex justify-between items-baseline">
                                     <p className="text-[14px] font-semibold text-[#1A1A1A]">Total Paid</p>
-                                    <p className="text-[24px] font-bold text-[#1A1A1A] tracking-tighter">${orderData.total.toLocaleString()}</p>
+                                    <p className="text-[24px] font-bold text-[#1A1A1A] tracking-tighter">£{orderData.total.toLocaleString()}</p>
                                 </div>
+
                             </div>
                         </div>
                     </div>

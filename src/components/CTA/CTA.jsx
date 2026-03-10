@@ -2,8 +2,8 @@ export default function CTA() {
     return (
         <section className="px-[18px]">
             <div
-                className="cta-bg-hover relative rounded-[20px] overflow-hidden flex items-center max-md:items-end max-[480px]:aspect-[3/3.2]"
-                style={{ aspectRatio: '16 / 5.2', minHeight: '240px' }}
+                className="cta-bg-hover relative rounded-[20px] overflow-hidden flex items-center max-md:items-end min-[481px]:aspect-[16/5.2] max-[480px]:aspect-[3/3.2]"
+                style={{ minHeight: '240px' }}
             >
                 {/* Full-bleed background */}
                 <img

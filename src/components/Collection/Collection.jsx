@@ -6,8 +6,7 @@ function Collection() {
 
         <section className="bg-white mx-[18px] px-[2px] py-10">
             <div
-                className="grid gap-3 max-[900px]:grid-cols-1 max-[900px]:h-auto"
-                style={{ gridTemplateColumns: '1.18fr 1fr', height: '760px' }}
+                className="grid gap-3 min-[901px]:grid-cols-[1.18fr_1fr] max-[900px]:grid-cols-1 min-[901px]:h-[760px] max-[900px]:h-auto"
             >
                 {/* ══ LEFT: Big Beds card ══ */}
                 <CollectionCard
@@ -18,7 +17,7 @@ function Collection() {
                 />
 
                 {/* ══ RIGHT COLUMN ══ */}
-                <div className="grid gap-3 max-[900px]:grid-rows-[auto]" style={{ gridTemplateRows: '1.1fr 1fr' }}>
+                <div className="grid gap-3 min-[901px]:grid-rows-[1.1fr_1fr] max-[900px]:grid-rows-[auto]">
                     {/* Top: Sofas card */}
                     <CollectionCard
                         src="/picture/The Sofas Collection.webp"

@@ -3,10 +3,8 @@ export default function AboutSection() {
         <>
             <section
                 id="about"
-                className="bg-white mx-[18px] grid items-start max-sm:grid-cols-1 max-sm:gap-[10px]"
+                className="bg-white mx-[18px] grid items-start min-[641px]:grid-cols-[clamp(80px,12%,130px)_1fr] max-sm:grid-cols-1 min-[641px]:gap-[clamp(16px,3vw,32px)] max-sm:gap-[10px]"
                 style={{
-                    gridTemplateColumns: 'clamp(80px, 12%, 130px) 1fr',
-                    gap: 'clamp(16px, 3vw, 32px)',
                     padding: 'clamp(36px, 5vw, 60px) clamp(24px, 5vw, 60px)',
                 }}
             >
