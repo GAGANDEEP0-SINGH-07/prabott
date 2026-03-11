@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { fetchAdminProducts, deleteProduct } from '../../api/api';
+import { fetchAdminProducts, deleteProduct } from '../services/adminApi';
 import AdminTable from '../components/AdminTable';
 import { formatPrice } from '../../utils/pricing';
 
@@ -45,7 +45,6 @@ export default function Products() {
         } catch { alert('Failed to delete product'); }
     };
     
-    // ... columns definition remains same ...
     const columns = [
         {
             key: 'image', header: 'Image', sortable: false,

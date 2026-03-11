@@ -24,14 +24,14 @@ export function CategoryPage({ page, onAddCart }) {
     const [sort, setSort] = useState("featured");
     const [gridView, setGridView] = useState("grid");
 
-    useReveal();
-
     const [pageNumber, setPageNumber] = useState(1);
     const [pages, setPages] = useState(1);
     const [totalProducts, setTotalProducts] = useState(0);
 
     const [apiProducts, setApiProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    useReveal([apiProducts]);
 
     useEffect(() => {
         const fetchProducts = async () => {

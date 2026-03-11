@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate, useParams } from 'react-router-dom';
 import Footer from '../Footer/Footer';
-import api from '../../api/api';
+import api from '../../api';
+import { formatPrice } from '../../utils/pricing';
 
 export default function OrderConfirmation() {
     const { id } = useParams();

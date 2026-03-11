@@ -243,7 +243,7 @@ function Login({ onLogin, onSignup, onForgot }) {
             setErrors({ auth: result?.message || "Invalid email or password" });
         }
         setLoading(false);
-    }, [email, pass, remember, onLogin]);
+    }, [email, pass, onLogin]);
 
     return (
         <div style={{ minHeight: "100vh", background: C.bg, display: "flex", fontFamily: "'Inter', sans-serif" }}>

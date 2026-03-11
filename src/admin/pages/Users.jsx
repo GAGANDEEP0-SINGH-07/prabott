@@ -1,3 +1,8 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchAdminUsers, updateUserRole, suspendUser, deleteUser } from '../services/adminApi';
+import AdminTable from '../components/AdminTable';
+
 export default function Users() {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);

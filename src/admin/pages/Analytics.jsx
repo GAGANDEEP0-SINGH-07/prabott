@@ -39,8 +39,8 @@ export default function Analytics() {
                         <h3 className="font-bold text-slate-800">Growth Analysis</h3>
                         <p className="text-xs text-slate-400 font-medium uppercase tracking-widest">Revenue vs Forecast</p>
                     </div>
-                    <div className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="w-full h-[300px] min-h-[300px] flex flex-col">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
                             <AreaChart data={data.salesTrend}>
                                 <defs>
                                     <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
@@ -67,8 +67,8 @@ export default function Analytics() {
                         <h3 className="font-bold text-slate-800">Product Popularity</h3>
                         <p className="text-xs text-slate-400 font-medium uppercase tracking-widest">Units sold per top product</p>
                     </div>
-                    <div className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="w-full h-[300px] min-h-[300px] flex flex-col">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
                             <BarChart data={data.topProducts} layout="vertical" margin={{ left: 20 }}>
                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                                 <XAxis type="number" hide />

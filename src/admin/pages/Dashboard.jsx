@@ -93,8 +93,8 @@ export default function Dashboard() {
                         <h3 className="text-lg font-bold text-slate-800 tracking-tight">Revenue Trend</h3>
                         <span className="text-xs font-medium bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full">Last 12 Months</span>
                     </div>
-                    <div className="h-[280px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="w-full h-[300px] min-h-[300px] flex flex-col">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
                             <LineChart data={data.salesTrend || []} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                                 <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} dy={10} />
@@ -114,8 +114,8 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-lg font-bold text-slate-800 tracking-tight">Order Activity</h3>
                     </div>
-                    <div className="h-[280px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="w-full h-[300px] min-h-[300px] flex flex-col">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
                             <BarChart data={data.salesTrend || []} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                                 <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} dy={10} />

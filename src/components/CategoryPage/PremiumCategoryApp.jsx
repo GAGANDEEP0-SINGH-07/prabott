@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import GlobalStyles from "../Shared/GlobalStyles";
 import CartToast from "../Shared/CartToast";
 import { useCart } from "../../context/CartContext";
 import CategoryPage from "./CategoryPage"; // default export

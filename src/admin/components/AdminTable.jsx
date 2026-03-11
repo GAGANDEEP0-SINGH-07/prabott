@@ -1,3 +1,5 @@
+import { useState, useMemo } from 'react';
+
 export default function AdminTable({
     columns,
     data = [],
