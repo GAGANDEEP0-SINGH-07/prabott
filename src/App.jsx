@@ -179,6 +179,7 @@ export default function App() {
               }>
                 {/* Nested admin routes rendered via <Outlet /> in AdminLayout */}
                 <Route index element={<AdminDashboard />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="products/add" element={<AdminAddProduct />} />
                 <Route path="products/edit/:id" element={<AdminEditProduct />} />

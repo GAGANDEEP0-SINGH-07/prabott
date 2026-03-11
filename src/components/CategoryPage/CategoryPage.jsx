@@ -81,7 +81,7 @@ export function CategoryPage({ page, onAddCart }) {
     return (
         <div style={{ fontFamily: "'Inter',sans-serif" }}>
 
-            <CategoryHero data={data} page={page} />
+            <CategoryHero data={data} page={page} productCount={filtered.length} />
 
             <EditorialBand />
 

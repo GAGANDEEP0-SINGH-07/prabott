@@ -484,8 +484,8 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
                         total: o.totalAmount,
                         status: o.paymentStatus === 'Paid' || o.paymentStatus === 'Completed' ? 'PAID' : o.orderStatus,
                         date: new Date(o.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-                        items: (o.products || []).map(item => ({
-                            id: item.productId?._id || item.productId,
+                        items: (o.products || []).map((item, idx) => ({
+                            id: item._id || `${item.productId?._id || item.productId}-${idx}`,
                             name: item.productId?.name || 'Product',
                             qty: item.quantity,
                             price: item.productId?.price || 0,
@@ -752,7 +752,7 @@ export default function AuthDashboard({ initialScreen = "login" }) {
         const res = await login(userData, remember);
         if (res?.success) {
             if (res.user?.role === 'admin') {
-                navigate("/admin/dashboard", { replace: true });
+                navigate("/admin", { replace: true });
             } else {
                 navigate(searchParams.get("redirect") || "/", { replace: true });
             }

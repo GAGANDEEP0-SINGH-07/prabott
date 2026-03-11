@@ -1,7 +1,7 @@
 import React from 'react';
 import { useReveal } from '../../Shared/hooks';
 
-export function CategoryHero({ data, page }) {
+export function CategoryHero({ data, page, productCount = 0 }) {
     useReveal();
 
     return (
@@ -57,7 +57,7 @@ export function CategoryHero({ data, page }) {
                             Explore Collection
                         </button>
                         <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", letterSpacing: 1 }}>
-                            {data.products.length} Pieces
+                            {productCount || (data.products && data.products.length) || 0} Pieces
                         </span>
                     </div>
                 </div>

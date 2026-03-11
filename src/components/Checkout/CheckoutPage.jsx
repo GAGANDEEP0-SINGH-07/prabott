@@ -168,8 +168,21 @@ export default function CheckoutPage() {
                 });
             } else {
                 if (paymentResult.paymentIntent.status === 'succeeded') {
-                    // Guest fallback
-                    if (!user) {
+                    // Update order status in backend immediately if user is logged in
+                    if (user) {
+                        try {
+                            await api.put(`/orders/${finalOrderId}/pay`, {
+                                id: paymentResult.paymentIntent.id,
+                                status: paymentResult.paymentIntent.status,
+                                update_time: new Date().toISOString(),
+                                email_address: shippingDetails.email,
+                            });
+                        } catch (payErr) {
+                            console.error('Failed to update payment status manually:', payErr);
+                            // We don't block the user if this fails, as the success is already confirmed by Stripe
+                        }
+                    } else {
+                        // Guest fallback
                         const historyKey = 'prabott_orders_guest';
                         const existingHistory = JSON.parse(localStorage.getItem(historyKey) || '[]');
                         localStorage.setItem(historyKey, JSON.stringify([{ ...createdOrder, paymentStatus: 'Paid' }, ...existingHistory]));
@@ -332,165 +345,173 @@ export default function CheckoutPage() {
                     </div>
                 )}
 
-                {/* Main layout for steps 1-3 */}
-                {step <= 3 && (
-                    <div className="flex gap-8 items-start max-[960px]:flex-col max-w-[1200px] mx-auto">
-                        {/* LEFT: Step Content */}
-                        <div className="flex-1 min-w-0 bg-white rounded-[24px] border border-[#f0eeeb] p-8 max-[600px]:p-5 w-full shadow-sm">
+                <Elements stripe={stripePromise}>
+                    {/* Main layout for steps 1-3 (and 4 for keeping element mounted) */}
+                    <div style={{
+                        visibility: step <= 3 ? 'visible' : 'hidden',
+                        height: step <= 3 ? 'auto' : 0,
+                        overflow: 'hidden'
+                    }}>
+                        <div className="flex gap-8 items-start max-[960px]:flex-col max-w-[1200px] mx-auto">
+                            {/* LEFT: Step Content */}
+                            <div className="flex-1 min-w-0 bg-white rounded-[24px] border border-[#f0eeeb] p-8 max-[600px]:p-5 w-full shadow-sm">
 
-                            {/* STEP 1: SHIPPING INFORMATION */}
-                            {step === 1 && (
-                                <div className="animate-fade-in">
-                                    <h2 className="text-[24px] font-bold text-[#1A1A1A] mb-8 tracking-tight">Shipping Information</h2>
-                                    <div className="grid grid-cols-2 gap-4 max-[600px]:grid-cols-1">
-                                        <div className="flex flex-col gap-1.5 col-span-2">
-                                            <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">Email Address</label>
-                                            <input
-                                                type="email"
-                                                placeholder="you@example.com"
-                                                value={shippingDetails.email}
-                                                onChange={(e) => setShippingDetails({ ...shippingDetails, email: e.target.value })}
-                                                className={`w-full h-12 px-4 rounded-[12px] border ${errors.email ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
-                                            />
-                                            {errors.email && <span className="text-[11px] text-[#E05252] font-semibold ml-1">{errors.email}</span>}
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">First Name</label>
-                                            <input
-                                                type="text"
-                                                value={shippingDetails.firstName}
-                                                onChange={(e) => setShippingDetails({ ...shippingDetails, firstName: e.target.value })}
-                                                className={`w-full h-12 px-4 rounded-[12px] border ${errors.firstName ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">Last Name</label>
-                                            <input
-                                                type="text"
-                                                value={shippingDetails.lastName}
-                                                onChange={(e) => setShippingDetails({ ...shippingDetails, lastName: e.target.value })}
-                                                className={`w-full h-12 px-4 rounded-[12px] border ${errors.lastName ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5 col-span-2">
-                                            <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">Address</label>
-                                            <input
-                                                type="text"
-                                                value={shippingDetails.address}
-                                                onChange={(e) => setShippingDetails({ ...shippingDetails, address: e.target.value })}
-                                                className={`w-full h-12 px-4 rounded-[12px] border ${errors.address ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">City</label>
-                                            <input
-                                                type="text"
-                                                value={shippingDetails.city}
-                                                onChange={(e) => setShippingDetails({ ...shippingDetails, city: e.target.value })}
-                                                className={`w-full h-12 px-4 rounded-[12px] border ${errors.city ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">ZIP / Postcode</label>
-                                            <input
-                                                type="text"
-                                                value={shippingDetails.zipCode}
-                                                onChange={(e) => setShippingDetails({ ...shippingDetails, zipCode: e.target.value })}
-                                                className={`w-full h-12 px-4 rounded-[12px] border ${errors.zipCode ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
-                                            />
-                                        </div>
-                                    </div>
-                                    <button onClick={handleNext} className="w-full h-[56px] bg-[#1A1A1A] text-white rounded-[16px] text-[15px] font-bold mt-10 hover:bg-[#333] transition-all flex items-center justify-center gap-2">
-                                        Next: Shipping Method
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* STEP 2: SHIPPING METHOD */}
-                            {step === 2 && (
-                                <div className="animate-fade-in">
-                                    <h2 className="text-[24px] font-bold text-[#1A1A1A] mb-8 tracking-tight">Select Shipping Method</h2>
-                                    <div className="flex flex-col gap-3">
-                                        {SHIPPING_METHODS.map((m) => (
-                                            <div
-                                                key={m.id}
-                                                onClick={() => setShippingMethod(m)}
-                                                className={`p-5 rounded-[20px] border-2 cursor-pointer transition-all flex items-center justify-between ${shippingMethod.id === m.id ? 'border-[#1A1A1A] bg-[#fdfaf7]' : 'border-[#f0eeeb] bg-white hover:border-[#ddd]'}`}
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${shippingMethod.id === m.id ? 'border-[#1A1A1A]' : 'border-[#ccc]'}`}>
-                                                        {shippingMethod.id === m.id && <div className="w-2.5 h-2.5 rounded-full bg-[#1A1A1A]" />}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-[#1A1A1A]">{m.name}</p>
-                                                        <p className="text-[13px] text-[#666]">{m.deliveryText}</p>
-                                                    </div>
-                                                </div>
-                                                <span className="font-bold text-[#1A1A1A]">{m.price === 0 ? 'FREE' : `£${m.price}`}</span>
+                                {/* STEP 1: SHIPPING INFORMATION */}
+                                {step === 1 && (
+                                    <div className="animate-fade-in">
+                                        <h2 className="text-[24px] font-bold text-[#1A1A1A] mb-8 tracking-tight">Shipping Information</h2>
+                                        <div className="grid grid-cols-2 gap-4 max-[600px]:grid-cols-1">
+                                            <div className="flex flex-col gap-1.5 col-span-2">
+                                                <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">Email Address</label>
+                                                <input
+                                                    type="email"
+                                                    placeholder="you@example.com"
+                                                    value={shippingDetails.email}
+                                                    onChange={(e) => setShippingDetails({ ...shippingDetails, email: e.target.value })}
+                                                    className={`w-full h-12 px-4 rounded-[12px] border ${errors.email ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
+                                                />
+                                                {errors.email && <span className="text-[11px] text-[#E05252] font-semibold ml-1">{errors.email}</span>}
                                             </div>
-                                        ))}
-                                    </div>
-                                    <div className="flex gap-4 mt-10">
-                                        <button onClick={handleBack} className="flex-1 h-[56px] border border-[#e8e4df] text-[#1A1A1A] rounded-[16px] text-[15px] font-bold hover:bg-[#F7F5F2] transition-all">
-                                            Back
-                                        </button>
-                                        <button onClick={handleNext} className="flex-[2] h-[56px] bg-[#1A1A1A] text-white rounded-[16px] text-[15px] font-bold hover:bg-[#333] transition-all flex items-center justify-center gap-2">
-                                            Next: Payment Detail
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">First Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={shippingDetails.firstName}
+                                                    onChange={(e) => setShippingDetails({ ...shippingDetails, firstName: e.target.value })}
+                                                    className={`w-full h-12 px-4 rounded-[12px] border ${errors.firstName ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">Last Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={shippingDetails.lastName}
+                                                    onChange={(e) => setShippingDetails({ ...shippingDetails, lastName: e.target.value })}
+                                                    className={`w-full h-12 px-4 rounded-[12px] border ${errors.lastName ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5 col-span-2">
+                                                <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">Address</label>
+                                                <input
+                                                    type="text"
+                                                    value={shippingDetails.address}
+                                                    onChange={(e) => setShippingDetails({ ...shippingDetails, address: e.target.value })}
+                                                    className={`w-full h-12 px-4 rounded-[12px] border ${errors.address ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">City</label>
+                                                <input
+                                                    type="text"
+                                                    value={shippingDetails.city}
+                                                    onChange={(e) => setShippingDetails({ ...shippingDetails, city: e.target.value })}
+                                                    className={`w-full h-12 px-4 rounded-[12px] border ${errors.city ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">ZIP / Postcode</label>
+                                                <input
+                                                    type="text"
+                                                    value={shippingDetails.zipCode}
+                                                    onChange={(e) => setShippingDetails({ ...shippingDetails, zipCode: e.target.value })}
+                                                    className={`w-full h-12 px-4 rounded-[12px] border ${errors.zipCode ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
+                                                />
+                                            </div>
+                                        </div>
+                                        <button onClick={handleNext} className="w-full h-[56px] bg-[#1A1A1A] text-white rounded-[16px] text-[15px] font-bold mt-10 hover:bg-[#333] transition-all flex items-center justify-center gap-2">
+                                            Next: Shipping Method
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
                                         </button>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {/* STEP 3: PAYMENT DETAILS */}
-                            {step === 3 && (
-                                <div>
-                                    <Elements stripe={stripePromise}>
+                                {/* STEP 2: SHIPPING METHOD */}
+                                {step === 2 && (
+                                    <div className="animate-fade-in">
+                                        <h2 className="text-[24px] font-bold text-[#1A1A1A] mb-8 tracking-tight">Select Shipping Method</h2>
+                                        <div className="flex flex-col gap-3">
+                                            {SHIPPING_METHODS.map((m) => (
+                                                <div
+                                                    key={m.id}
+                                                    onClick={() => setShippingMethod(m)}
+                                                    className={`p-5 rounded-[20px] border-2 cursor-pointer transition-all flex items-center justify-between ${shippingMethod.id === m.id ? 'border-[#1A1A1A] bg-[#fdfaf7]' : 'border-[#f0eeeb] bg-white hover:border-[#ddd]'}`}
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${shippingMethod.id === m.id ? 'border-[#1A1A1A]' : 'border-[#ccc]'}`}>
+                                                            {shippingMethod.id === m.id && <div className="w-2.5 h-2.5 rounded-full bg-[#1A1A1A]" />}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-[#1A1A1A]">{m.name}</p>
+                                                            <p className="text-[13px] text-[#666]">{m.deliveryText}</p>
+                                                        </div>
+                                                    </div>
+                                                    <span className="font-bold text-[#1A1A1A]">{m.price === 0 ? 'FREE' : `£${m.price}`}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="flex gap-4 mt-10">
+                                            <button onClick={handleBack} className="flex-1 h-[56px] border border-[#e8e4df] text-[#1A1A1A] rounded-[16px] text-[15px] font-bold hover:bg-[#F7F5F2] transition-all">
+                                                Back
+                                            </button>
+                                            <button onClick={handleNext} className="flex-[2] h-[56px] bg-[#1A1A1A] text-white rounded-[16px] text-[15px] font-bold hover:bg-[#333] transition-all flex items-center justify-center gap-2">
+                                                Next: Payment Detail
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* STEP 3: PAYMENT DETAILS */}
+                                {(step === 3 || step === 4) && (
+                                    <div style={{
+                                        visibility: step === 3 ? 'visible' : 'hidden',
+                                        height: step === 3 ? 'auto' : '0',
+                                        overflow: 'hidden'
+                                    }}>
                                         <PaymentForm
                                             ref={paymentFormRef}
                                             onSubmit={handlePaymentSubmit}
                                             isProcessing={false}
                                             total={total}
                                         />
-                                    </Elements>
 
-                                    <div className="flex gap-4 mt-10">
-                                        <button
-                                            type="button"
-                                            onClick={handleBack}
-                                            className="flex-1 h-[56px] border border-[#e8e4df] text-[#1A1A1A] rounded-[16px] text-[15px] font-bold hover:bg-[#F7F5F2] transition-all"
-                                        >
-                                            Back
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                // Trigger form submission via hidden submit in PaymentForm
-                                                const form = document.querySelector('form');
-                                                if (form) form.requestSubmit();
-                                            }}
-                                            className="flex-[2] h-[56px] bg-[#1A1A1A] text-white rounded-[16px] text-[15px] font-bold hover:bg-[#333] transition-all flex items-center justify-center gap-2"
-                                        >
-                                            Place Order: £{total.toLocaleString()}
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                                        </button>
+                                        <div className="flex gap-4 mt-10">
+                                            <button
+                                                type="button"
+                                                onClick={handleBack}
+                                                className="flex-1 h-[56px] border border-[#e8e4df] text-[#1A1A1A] rounded-[16px] text-[15px] font-bold hover:bg-[#F7F5F2] transition-all"
+                                            >
+                                                Back
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    // Trigger form submission via hidden submit in PaymentForm
+                                                    const form = paymentFormRef.current;
+                                                    if (form) form.requestSubmit();
+                                                }}
+                                                className="flex-[2] h-[56px] bg-[#1A1A1A] text-white rounded-[16px] text-[15px] font-bold hover:bg-[#333] transition-all flex items-center justify-center gap-2"
+                                            >
+                                                Place Order: £{total.toLocaleString()}
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
-                        </div>
+                                )}
+                            </div>
 
-                        {/* RIGHT: Order Summary */}
-                        <div className="w-full max-[960px]:w-full min-[961px]:w-[420px] shrink-0">
-                            <PaymentSummary
-                                items={items}
-                                subtotal={subtotal}
-                                shippingMethod={shippingMethod}
-                                total={total}
-                            />
+                            {/* RIGHT: Order Summary */}
+                            <div className="w-full max-[960px]:w-full min-[961px]:w-[420px] shrink-0">
+                                <PaymentSummary
+                                    items={items}
+                                    subtotal={subtotal}
+                                    shippingMethod={shippingMethod}
+                                    total={total}
+                                />
+                            </div>
                         </div>
                     </div>
-                )}
+                </Elements>
             </div>
 
             <Footer />
