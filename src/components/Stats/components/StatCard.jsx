@@ -16,4 +16,4 @@ function StatCard({ number, desc }) {
     );
 }
 
-export default memo(StatCard);
+export default StatCard;

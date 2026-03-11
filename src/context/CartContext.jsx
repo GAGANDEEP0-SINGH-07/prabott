@@ -9,7 +9,7 @@ export function CartProvider({ children }) {
     const [cartItems, setCartItems] = useState([]);
 
     // Fetch cart on load or auth change
-    const fetchCart = useCallback(async () => {
+    const fetchCart = useCallback(async (signal) => {
         if (!user) {
             const saved = localStorage.getItem('prabott_cart');
             setCartItems(saved ? JSON.parse(saved) : []);
@@ -22,19 +22,27 @@ export function CartProvider({ children }) {
             const localCart = saved ? JSON.parse(saved) : [];
 
             if (localCart.length > 0) {
-                // Sequentially add local items to backend to avoid race conditions
+                console.log("[DEBUG] Merging local cart to backend...");
                 for (const item of localCart) {
-                    const isValidObjectId = item.id && typeof item.id === 'string' && item.id.length >= 24;
-                    await api.post('/cart/add', {
-                        productId: isValidObjectId ? item.id : undefined,
-                        productName: item.name,
-                        quantity: item.quantity
-                    }).catch(e => console.error("Error migrating items to auth cart", e));
+                    if (signal?.aborted) return;
+                    try {
+                        const productId = item._id || item.id;
+                        const isValidObjectId = productId && typeof productId === 'string' && /^[0-9a-fA-F]{24}$/.test(productId);
+                        
+                        await api.post('/cart/add', {
+                            productId: isValidObjectId ? productId : undefined,
+                            productName: item.name,
+                            quantity: item.quantity
+                        }, { signal });
+                    } catch (e) {
+                        if (e.name === 'CanceledError') return;
+                        console.error(`Error migrating item "${item.name}" to auth cart:`, e.message);
+                    }
                 }
                 localStorage.removeItem('prabott_cart');
             }
 
-            const { data } = await api.get('/cart');
+            const { data } = await api.get('/cart', { signal });
             if (data && data.products) {
                 const mappedCart = data.products.map(p => ({
                     id: p.productId?._id,
@@ -42,16 +50,20 @@ export function CartProvider({ children }) {
                     price: p.productId?.price,
                     image: p.productId?.images?.[0] || '',
                     quantity: p.quantity,
+                    _id: p.productId?._id 
                 }));
                 setCartItems(mappedCart);
             }
         } catch (error) {
+            if (error.name === 'CanceledError') return;
             console.error("Failed to fetch cart from backend", error);
         }
     }, [user]);
 
     useEffect(() => {
-        fetchCart();
+        const controller = new AbortController();
+        fetchCart(controller.signal);
+        return () => controller.abort();
     }, [fetchCart]);
 
     // Sync local storage for non-logged-in users
@@ -65,17 +77,17 @@ export function CartProvider({ children }) {
         if (!user) {
             // Local fallback
             setCartItems(prev => {
-                const existing = prev.find(item => (item.id && item.id === product.id) || item.name === product.name);
+                const existing = prev.find(item => (item.id && (item.id === product.id || item.id === product._id)) || item.name === product.name);
                 if (existing) {
                     return prev.map(item =>
-                        ((item.id && item.id === product.id) || item.name === product.name)
+                        ((item.id && (item.id === product.id || item.id === product._id)) || item.name === product.name)
                             ? { ...item, quantity: item.quantity + quantity }
                             : item
                     );
                 }
                 const numericPrice = typeof product.price === 'number' ? product.price : parseFloat(product.price?.toString().replace(/[^0-9.]/g, '') || 0);
                 return [...prev, {
-                    id: product.id || Date.now() + Math.random(),
+                    id: product._id || product.id || Date.now() + Math.random(),
                     name: product.name,
                     price: numericPrice,
                     image: product.image || product.img || (product.images && product.images[0]) || '',
@@ -87,26 +99,16 @@ export function CartProvider({ children }) {
         }
 
         try {
-            // Normalize product ID - Backend understands MongoDB _id (24-char hex string)
             const productId = product._id || product.id;
             const productName = product.name;
+            const isValidObjectId = productId && typeof productId === 'string' && /^[0-9a-fA-F]{24}$/.test(productId);
 
-            // Detect stale/invalid IDs (numeric or short strings from old cached data)
-            const isValidObjectId = productId && typeof productId === 'string' && productId.length >= 24;
-
-            if (!isValidObjectId) {
-                console.warn("WARNING: productId is not a valid MongoDB ObjectId:", productId, "— sending productName as fallback:", productName);
-            }
-
-            console.log("DEBUG: Adding to cart, productId:", productId, "productName:", productName);
-
-            // Send both productId and productName so backend can do a fallback name-based lookup
             await api.post('/cart/add', {
                 productId: isValidObjectId ? productId : undefined,
                 productName,
                 quantity
             });
-            fetchCart(); // Re-sync
+            fetchCart(); 
         } catch (error) {
             console.error("Error adding to remote cart", error);
         }
@@ -127,22 +129,19 @@ export function CartProvider({ children }) {
     };
 
     const updateQuantity = async (id, newQty) => {
+        const qty = Math.max(1, newQty);
+        
         if (!user) {
-            setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, newQty) } : item));
+            setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: qty } : item));
             return;
         }
 
-        const item = cartItems.find(i => i.id === id);
-        if (!item) return;
-
-        const difference = newQty - item.quantity;
-        if (difference > 0) {
-            await addToCart({ id }, difference);
-        } else if (difference < 0) {
-            // we don't have a direct decrement API, so we would need to remove it and add it back at the new qty, 
-            // or just rely on a new PUT endpoint if we had one. 
-            // For now, let's mock the update visually to prevent breaking
-            setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, newQty) } : item));
+        try {
+            await api.put('/cart/update', { productId: id, quantity: qty });
+            fetchCart();
+        } catch (error) {
+            console.error("Error updating cart quantity", error);
+            // Optimistic update fallback or just ignore and let fetchCart handle sync if it fails
         }
     };
 

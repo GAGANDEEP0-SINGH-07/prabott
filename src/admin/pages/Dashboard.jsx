@@ -4,6 +4,7 @@ import {
     Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { fetchAnalytics } from '../services/adminApi';
+import { formatPrice } from '../../utils/pricing';
 
 function MetricCard({ label, value, icon, colorClass, iconBgClass, sub }) {
     return (
@@ -45,7 +46,6 @@ export default function Dashboard() {
         <div className="p-10 text-center text-red-500 font-medium bg-red-50 rounded-xl border border-red-100">{error}</div>
     );
 
-    const fmtCurrency = (n) => `$${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     return (
         <div className="space-y-6">
@@ -53,7 +53,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 <MetricCard
                     label="Total Revenue"
-                    value={fmtCurrency(data.totalRevenue)}
+                    value={formatPrice(data.totalRevenue)}
                     icon="💰"
                     colorClass="text-emerald-600"
                     iconBgClass="bg-emerald-50 text-emerald-500"
@@ -98,9 +98,9 @@ export default function Dashboard() {
                             <LineChart data={data.salesTrend || []} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                                 <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} dy={10} />
-                                <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} tickFormatter={v => `$${v}`} axisLine={false} tickLine={false} dx={-10} />
+                                <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} tickFormatter={v => formatPrice(v)} axisLine={false} tickLine={false} dx={-10} />
                                 <Tooltip
-                                    formatter={(v) => [`$${v}`, 'Revenue']}
+                                    formatter={(v) => [formatPrice(v), 'Revenue']}
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', fontSize: '13px', fontWeight: 600 }}
                                 />
                                 <Line type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff', stroke: '#6366f1' }} activeDot={{ r: 6, fill: '#6366f1', stroke: '#fff', strokeWidth: 2 }} />
@@ -153,7 +153,7 @@ export default function Dashboard() {
                                     <tr key={p._id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-4 text-sm font-semibold text-slate-400">#{i + 1}</td>
                                         <td className="px-6 py-4 text-sm font-bold text-slate-700">{p.name}</td>
-                                        <td className="px-6 py-4 text-sm font-medium text-slate-500">{fmtCurrency(p.price)}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-500">{formatPrice(p.price)}</td>
                                         <td className="px-6 py-4 text-sm">
                                             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3 h-3 mr-1">

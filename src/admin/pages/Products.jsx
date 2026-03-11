@@ -1,31 +1,51 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { fetchAdminProducts, deleteProduct } from '../../api/api';
 import AdminTable from '../components/AdminTable';
-import { fetchAdminProducts, deleteProduct } from '../services/adminApi';
+import { formatPrice } from '../../utils/pricing';
 
 export default function Products() {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialSearch = searchParams.get('q') || '';
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [search, setSearch] = useState(initialSearch);
     const navigate = useNavigate();
 
-    const load = () => {
+    // Update search if URL changes (external search from header)
+    useEffect(() => {
+        const q = searchParams.get('q') || '';
+        if (q !== search) {
+            setSearch(q);
+            setPage(1);
+        }
+    }, [searchParams]);
+
+    const load = useCallback(() => {
         setLoading(true);
-        fetchAdminProducts({ limit: 100 })
-            .then(r => setProducts(r.data.products))
+        fetchAdminProducts({ page, keyword: search, limit: 10 })
+            .then(r => {
+                setProducts(r.data.products);
+                setTotal(r.data.total || 0);
+            })
             .catch(console.error)
             .finally(() => setLoading(false));
-    };
+    }, [page, search]);
 
-    useEffect(load, []);
+    useEffect(load, [load]);
 
     const handleDelete = async (id, name) => {
         if (!window.confirm(`Delete "${name}"? This action cannot be undone.`)) return;
         try {
             await deleteProduct(id);
-            setProducts(prev => prev.filter(p => p._id !== id));
+            if (products.length === 1 && page > 1) setPage(p => p - 1);
+            else load();
         } catch { alert('Failed to delete product'); }
     };
-
+    
+    // ... columns definition remains same ...
     const columns = [
         {
             key: 'image', header: 'Image', sortable: false,
@@ -50,7 +70,7 @@ export default function Products() {
         },
         {
             key: 'price', accessor: 'price', header: 'Price', render: (row) => (
-                <span className="font-bold text-emerald-600">${Number(row.price).toFixed(2)}</span>
+                <span className="font-bold text-emerald-600">{formatPrice(row.price)}</span>
             )
         },
         {
@@ -100,7 +120,7 @@ export default function Products() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-xl font-bold text-slate-800 tracking-tight">Products Management</h2>
-                    <p className="text-sm font-medium text-slate-500 mt-1">{products.length} products in catalogue</p>
+                    <p className="text-sm font-medium text-slate-500 mt-1">{total} products in catalogue</p>
                 </div>
                 <button
                     onClick={() => navigate('/admin/products/add')}
@@ -111,18 +131,23 @@ export default function Products() {
                 </button>
             </div>
 
-            {loading ? (
-                <div className="flex items-center justify-center min-h-[40vh]">
-                    <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
-                </div>
-            ) : (
-                <AdminTable
-                    columns={columns}
-                    data={products}
-                    searchPlaceholder="Search products by name or category…"
-                    emptyText="No products found matching your search."
-                />
-            )}
+            <AdminTable
+                columns={columns}
+                data={products}
+                serverSide
+                totalItems={total}
+                currentPage={page}
+                pageSize={10}
+                onPageChange={setPage}
+                onSearchChange={(v) => { 
+                    setSearch(v); 
+                    setPage(1);
+                    setSearchParams(v ? { q: v } : {});
+                }}
+                loading={loading}
+                searchPlaceholder="Search products by name or category…"
+                emptyText="No products found matching your search."
+            />
         </div>
     );
 }

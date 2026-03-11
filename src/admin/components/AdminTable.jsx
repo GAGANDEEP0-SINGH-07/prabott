@@ -1,24 +1,39 @@
-import { useState, useMemo } from 'react';
-
-export default function AdminTable({ columns, data, searchPlaceholder = 'Searchâ€¦', emptyText = 'No records found' }) {
-    const [search, setSearch] = useState('');
+export default function AdminTable({
+    columns,
+    data = [],
+    searchPlaceholder = 'Searchâ€¦',
+    emptyText = 'No records found',
+    // Server-side props
+    serverSide = false,
+    totalItems = 0,
+    currentPage = 1,
+    pageSize = 10,
+    onPageChange,
+    onSearchChange,
+    onSortChange,
+    loading = false
+}) {
+    const [localSearch, setLocalSearch] = useState('');
     const [sortKey, setSortKey] = useState('');
     const [sortDir, setSortDir] = useState('asc');
-    const [page, setPage] = useState(1);
-    const rowsPerPage = 10;
+    const [localPage, setLocalPage] = useState(1);
+    const rowsPerPage = pageSize;
 
+    // CLIENT-SIDE LOGIC (fallback)
     const filtered = useMemo(() => {
-        if (!search.trim()) return data;
-        const q = search.toLowerCase();
+        if (serverSide) return data;
+        if (!localSearch.trim()) return data;
+        const q = localSearch.toLowerCase();
         return data.filter((row) =>
             columns.some((col) => {
                 const val = col.accessor ? row[col.accessor] : '';
                 return String(val ?? '').toLowerCase().includes(q);
             })
         );
-    }, [data, search, columns]);
+    }, [data, localSearch, columns, serverSide]);
 
     const sorted = useMemo(() => {
+        if (serverSide) return filtered;
         if (!sortKey) return filtered;
         return [...filtered].sort((a, b) => {
             const av = a[sortKey] ?? '';
@@ -27,20 +42,48 @@ export default function AdminTable({ columns, data, searchPlaceholder = 'Searchâ
                 ? String(av).localeCompare(String(bv), undefined, { numeric: true })
                 : String(bv).localeCompare(String(av), undefined, { numeric: true });
         });
-    }, [filtered, sortKey, sortDir]);
+    }, [filtered, sortKey, sortDir, serverSide]);
 
-    const totalPages = Math.max(1, Math.ceil(sorted.length / rowsPerPage));
-    const safePage = Math.min(page, totalPages);
-    const paginated = sorted.slice((safePage - 1) * rowsPerPage, safePage * rowsPerPage);
+    const itemsToDisplay = serverSide ? data : sorted;
+    const totalCount = serverSide ? totalItems : sorted.length;
+    const activePage = serverSide ? currentPage : localPage;
+    const totalPages = Math.max(1, Math.ceil(totalCount / rowsPerPage));
+    const safePage = Math.min(activePage, totalPages);
+    
+    const paginated = serverSide ? data : sorted.slice((safePage - 1) * rowsPerPage, safePage * rowsPerPage);
 
     const handleSort = (key) => {
-        if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-        else { setSortKey(key); setSortDir('asc'); }
-        setPage(1);
+        if (serverSide) {
+            const newDir = sortKey === key && sortDir === 'asc' ? 'desc' : 'asc';
+            setSortKey(key);
+            setSortDir(newDir);
+            onSortChange?.(key, newDir);
+        } else {
+            if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+            else { setSortKey(key); setSortDir('asc'); }
+            setLocalPage(1);
+        }
+    };
+
+    const handleSearch = (val) => {
+        if (serverSide) {
+            onSearchChange?.(val);
+        } else {
+            setLocalSearch(val);
+            setLocalPage(1);
+        }
+    };
+
+    const handlePageChange = (p) => {
+        if (serverSide) {
+            onPageChange?.(p);
+        } else {
+            setLocalPage(p);
+        }
     };
 
     return (
-        <div>
+        <div className={loading ? 'opacity-50 pointer-events-none transition-opacity' : 'transition-opacity'}>
             {/* Search bar */}
             <div className="mb-5 flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="relative flex-1 max-w-sm">
@@ -48,14 +91,14 @@ export default function AdminTable({ columns, data, searchPlaceholder = 'Searchâ
                         <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
                     <input
-                        value={search}
-                        onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                        value={serverSide ? undefined : localSearch}
+                        onChange={(e) => handleSearch(e.target.value)}
                         placeholder={searchPlaceholder}
                         className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
                     />
                 </div>
                 <span className="text-[13px] font-medium text-slate-500 sm:ml-auto">
-                    {filtered.length} {filtered.length === 1 ? 'result' : 'results'} found
+                    {totalCount} {totalCount === 1 ? 'result' : 'results'} found
                 </span>
             </div>
 
@@ -89,7 +132,7 @@ export default function AdminTable({ columns, data, searchPlaceholder = 'Searchâ
                             {paginated.length === 0 ? (
                                 <tr>
                                     <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-400 text-sm font-medium">
-                                        {emptyText}
+                                        {loading ? 'Fetching data...' : emptyText}
                                     </td>
                                 </tr>
                             ) : paginated.map((row, i) => (
@@ -118,16 +161,16 @@ export default function AdminTable({ columns, data, searchPlaceholder = 'Searchâ
                             Page {safePage} of {totalPages}
                         </span>
                         <div className="flex items-center gap-1.5">
-                            <PagBtn disabled={safePage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>â€¹ Prev</PagBtn>
+                            <PagBtn disabled={safePage <= 1} onClick={() => handlePageChange(safePage - 1)}>â€¹ Prev</PagBtn>
                             {[...Array(Math.min(5, totalPages))].map((_, idx) => {
                                 const start = Math.max(1, Math.min(safePage - 2, totalPages - 4));
                                 const num = start + idx;
                                 if (num > totalPages) return null;
                                 return (
-                                    <PagBtn key={num} active={num === safePage} onClick={() => setPage(num)}>{num}</PagBtn>
+                                    <PagBtn key={num} active={num === safePage} onClick={() => handlePageChange(num)}>{num}</PagBtn>
                                 );
                             })}
-                            <PagBtn disabled={safePage >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Next â€º</PagBtn>
+                            <PagBtn disabled={safePage >= totalPages} onClick={() => handlePageChange(safePage + 1)}>Next â€º</PagBtn>
                         </div>
                     </div>
                 )}

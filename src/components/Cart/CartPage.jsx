@@ -6,71 +6,65 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-function CartItem({ item, onQtyChange, onRemove }) {
+import { formatPrice } from '../../utils/pricing';
+
+function CartItem({ item, onUpdate, onRemove }) {
     const [removing, setRemoving] = useState(false);
 
     const handleRemove = () => {
         setRemoving(true);
-        setTimeout(() => onRemove(item.id), 400);
     };
 
     return (
         <div
             className={`group transition-all duration-500 ease-out ${removing ? 'opacity-0 -translate-x-8 max-h-0 py-0 overflow-hidden' : 'opacity-100 translate-x-0 max-h-[300px]'}`}
+            onTransitionEnd={(e) => {
+                if (removing && e.propertyName === 'opacity') {
+                    onRemove(item.id);
+                }
+            }}
         >
             <div className="flex items-center gap-6 py-6 border-b border-[#edeae6] max-[700px]:flex-col max-[700px]:items-start max-[700px]:gap-4">
                 {/* Product Image */}
-                <div className="w-[120px] h-[120px] bg-[#F7F5F2] rounded-[14px] shrink-0 overflow-hidden max-[700px]:w-full max-[700px]:h-[200px]">
-                    <img
-                        src={item.image?.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image}`}
-                        alt={item.name}
-                        className="w-full h-full object-cover rounded-[14px] group-hover:scale-105 transition-transform duration-500"
-                    />
+                <div className="w-[120px] h-[120px] rounded-2xl overflow-hidden bg-[#f7f5f2] shrink-0 border border-[#f0eeeb]">
+                    <img src={item.image?.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image}`} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                 </div>
 
-                {/* Info */}
+                {/* Details */}
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-[17px] font-semibold text-[#1A1A1A] tracking-[-0.01em] mb-1">{item.name}</h3>
-                    <p className="text-[13px] text-[#999]">{item.description}</p>
-                    <p className="text-[15px] font-medium text-[#555] mt-2">${item.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                    <h3 className="text-[17px] font-bold text-[#1a1a18] mb-1 truncate tracking-tight">{item.name}</h3>
+                    <p className="text-[13px] text-[#888] mb-4">In Stock - Ready to Ship</p>
+                    <button
+                        onClick={handleRemove}
+                        className="text-[12px] font-bold text-[#e05252] uppercase tracking-widest hover:text-[#c04040] transition-colors"
+                    >
+                        Remove
+                    </button>
                 </div>
 
-                {/* Quantity + Price + Remove */}
-                <div className="flex items-center gap-8 max-[700px]:w-full max-[700px]:justify-between">
-                    {/* Quantity Controls */}
-                    <div className="flex items-center bg-[#F7F5F2] rounded-[10px] overflow-hidden">
+                {/* Price & Quantity */}
+                <div className="flex items-center gap-10 max-[700px]:w-full max-[700px]:justify-between max-[700px]:gap-4">
+                    <div className="flex items-center bg-[#f7f5f2] rounded-xl p-1 border border-[#f0eeeb]">
                         <button
-                            onClick={() => onQtyChange(item.id, Math.max(1, item.quantity - 1))}
-                            className="w-10 h-10 flex items-center justify-center text-[#666] hover:text-[#1A1A1A] hover:bg-[#ece9e4] transition-all duration-200 cursor-pointer border-none bg-transparent text-[18px] font-light"
+                            onClick={() => onUpdate(item.id, Math.max(1, item.quantity - 1))}
+                            className="w-8 h-8 flex items-center justify-center text-[#1a1a18] hover:bg-white rounded-lg transition-colors font-bold"
                             aria-label="Decrease quantity"
                         >
-                            −
+                            -
                         </button>
-                        <span className="w-10 text-center text-[15px] font-semibold text-[#1A1A1A] select-none">{item.quantity}</span>
+                        <span className="w-10 text-center text-[14px] font-bold text-[#1a1a18]">{item.quantity}</span>
                         <button
-                            onClick={() => onQtyChange(item.id, item.quantity + 1)}
-                            className="w-10 h-10 flex items-center justify-center text-[#666] hover:text-[#1A1A1A] hover:bg-[#ece9e4] transition-all duration-200 cursor-pointer border-none bg-transparent text-[18px] font-light"
+                            onClick={() => onUpdate(item.id, item.quantity + 1)}
+                            className="w-8 h-8 flex items-center justify-center text-[#1a1a18] hover:bg-white rounded-lg transition-colors font-bold"
                             aria-label="Increase quantity"
                         >
                             +
                         </button>
                     </div>
-
-                    {/* Subtotal */}
-                    <span className="text-[18px] font-bold text-[#1A1A1A] tracking-[-0.02em] min-w-[100px] text-right">
-                        ${(item.price * item.quantity).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </span>
-
-                    {/* Remove */}
-                    <button
-                        onClick={handleRemove}
-                        className="w-9 h-9 rounded-full flex items-center justify-center text-[#bbb] hover:text-white hover:bg-[#E05252] transition-all duration-200 cursor-pointer border-none bg-transparent shrink-0"
-                        aria-label="Remove item"
-                    >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                    </button>
+                    <div className="text-right min-w-[100px]">
+                        <div className="text-[18px] font-bold text-[#1a1a18] tracking-tight">{formatPrice(item.price * item.quantity)}</div>
+                        <div className="text-[12px] text-[#999] mt-0.5">{formatPrice(item.price)} / each</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -158,7 +152,7 @@ export default function CartPage() {
                                     <CartItem
                                         key={item.id}
                                         item={item}
-                                        onQtyChange={handleQtyChange}
+                                        onUpdate={handleQtyChange}
                                         onRemove={handleRemove}
                                     />
                                 ))}
@@ -196,7 +190,7 @@ export default function CartPage() {
                                 <div className="flex flex-col gap-4 pb-6 border-b border-[#f0eeeb]">
                                     <div className="flex justify-between text-[14px]">
                                         <span className="text-[#888]">Subtotal ({totalItems} items)</span>
-                                        <span className="font-semibold">${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                        <span className="font-semibold">{formatPrice(subtotal)}</span>
                                     </div>
 
                                     <div className="flex justify-between text-[14px]">
@@ -207,7 +201,7 @@ export default function CartPage() {
 
                                 <div className="flex justify-between items-baseline pt-6 mb-8">
                                     <span className="text-[16px] font-medium text-[#1A1A1A]">Grand Total</span>
-                                    <span className="text-[32px] font-bold tracking-[-0.03em]">${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                    <span className="text-[32px] font-bold tracking-[-0.03em]">{formatPrice(total)}</span>
                                 </div>
 
                                 <button onClick={handleCheckout} className="w-full h-[56px] bg-[#1A1A1A] text-white rounded-[14px] text-[15px] font-bold tracking-[-0.01em] hover:bg-[#333] hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] active:scale-[0.98] transition-all duration-300 cursor-pointer border-none mb-4 flex items-center justify-center gap-2 font-['Inter',sans-serif]">

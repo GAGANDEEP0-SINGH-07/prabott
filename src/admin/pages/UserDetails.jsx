@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchAdminUserDetails, updateUserRole, suspendUser } from '../services/adminApi';
+import { formatPrice } from '../../utils/pricing';
 
 export default function UserDetails() {
     const { id } = useParams();
@@ -161,7 +162,7 @@ export default function UserDetails() {
                                                 </span>
                                             </td>
                                             <td className="px-5 py-4 text-xs font-bold text-slate-700 text-right">
-                                                ${order.totalAmount.toFixed(2)}
+                                                {formatPrice(order.totalAmount)}
                                             </td>
                                             <td className="px-5 py-4 text-right">
                                                 <button
@@ -182,9 +183,9 @@ export default function UserDetails() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Total Spent</p>
-                            <h4 className="text-2xl font-bold text-slate-800 tracking-tight">
-                                ${user.orders?.reduce((sum, o) => sum + o.totalAmount, 0).toFixed(2) || '0.00'}
-                            </h4>
+                             <h4 className="text-2xl font-bold text-slate-800 tracking-tight">
+                                 {formatPrice(user.orders?.reduce((sum, o) => sum + o.totalAmount, 0) || 0)}
+                             </h4>
                         </div>
                         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Order Frequency</p>

@@ -21,24 +21,9 @@ const C = {
 };
 
 /* ═══════════════════════════════════════
-   HELPERS & LOCALSTORAGE MOCK DB
+   HELPERS
+   Premium minimalist system
 ═══════════════════════════════════════ */
-const getUsers = () => JSON.parse(localStorage.getItem('prabott_users') || '[]');
-const saveUser = (user) => {
-    const users = getUsers();
-    users.push(user);
-    localStorage.setItem('prabott_users', JSON.stringify(users));
-};
-const updateUserInDb = (email, updates) => {
-    const users = getUsers();
-    const idx = users.findIndex(u => u.email === email);
-    if (idx !== -1) {
-        users[idx] = { ...users[idx], ...updates };
-        localStorage.setItem('prabott_users', JSON.stringify(users));
-        return true;
-    }
-    return false;
-};
 
 /* ═══════════════════════════════════════
    SHARED UI COMPONENTS
@@ -234,7 +219,6 @@ function ForgotPassword({ onBack, onSubmit }) {
 function Login({ onLogin, onSignup, onForgot }) {
     const [email, setEmail] = useState("");
     const [pass, setPass] = useState("");
-    const [remember, setRemember] = useState(false);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [visible, setVisible] = useState(false);
@@ -253,7 +237,7 @@ function Login({ onLogin, onSignup, onForgot }) {
         setLoading(true);
         setErrors({});
 
-        const result = await onLogin({ email, password: pass }, remember);
+        const result = await onLogin({ email, password: pass });
 
         if (!result?.success) {
             setErrors({ auth: result?.message || "Invalid email or password" });
@@ -284,11 +268,7 @@ function Login({ onLogin, onSignup, onForgot }) {
                     <Field label="Email Address" type="email" value={email} onChange={setEmail} placeholder="you@example.com" error={errors.email} />
                     <Field label="Password" type="password" value={pass} onChange={setPass} placeholder="••••••••" error={errors.pass} />
 
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 28 }}>
-                        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: C.muted, cursor: "pointer", fontWeight: 500 }}>
-                            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} style={{ width: 16, height: 16, accentColor: C.dark }} />
-                            Remember me
-                        </label>
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 28 }}>
                         <span onClick={onForgot} style={{ fontSize: 13, color: C.dark, fontWeight: 700, cursor: "pointer" }}>Forgot?</span>
                     </div>
 
@@ -534,7 +514,8 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
         try {
             const api = (await import('../../api')).default;
             await api.put('/auth/profile', {
-                password: passData.next // Note: backend needs an update to support verifying current password, but we'll just send the new one based on current backend architecture
+                currentPassword: passData.current,
+                password: passData.next
             });
 
             setPassData({ current: "", next: "", confirm: "" });
@@ -543,7 +524,7 @@ function Dashboard({ user, onLogout, initialTab = "overview" }) {
             setErrors({});
         } catch (error) {
             console.error("Failed to update password", error);
-            setErrors({ current: "Failed to update password. Please try again." });
+            setErrors({ current: error.response?.data?.message || "Failed to update password. Please try again." });
         }
     };
 
@@ -748,8 +729,8 @@ export default function AuthDashboard({ initialScreen = "login" }) {
         setCurrentScreen(initialScreen);
     }, [initialScreen]);
 
-    const handleLogin = useCallback(async (userData, remember) => {
-        const res = await login(userData, remember);
+    const handleLogin = useCallback(async (userData) => {
+        const res = await login(userData);
         if (res?.success) {
             if (res.user?.role === 'admin') {
                 navigate("/admin", { replace: true });

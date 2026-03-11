@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { useAuth } from '../../context/AuthContext';
+import { useWishlist } from '../../context/WishlistContext';
+import { formatPrice } from '../../utils/pricing';
 import api from '../../api';
 import './ProductDetails.css';
 
@@ -25,15 +26,22 @@ const ProductDetails = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        setProduct(location.state?.product || null);
+        setLoading(!location.state?.product);
+        setError(null);
+        setQuantity(1);
+        setActiveImage(0);
+        window.scrollTo(0, 0);
+    }, [id, location.state?.product]);
+
+    useEffect(() => {
         const fetchProduct = async () => {
-            if (product) return; // We already have it from location state
+            if (product) return; 
 
             try {
-                // If it's a valid Mongo ObjectId, this will fetch directly
                 const { data } = await api.get(`/products/${id}`);
                 setProduct(data);
             } catch (err) {
-                // To safely handle mock data routes that still use names mapping, we can try searching by name or just show error
                 setError("Product not found or invalid ID.");
                 console.error(err);
             } finally {
@@ -41,8 +49,7 @@ const ProductDetails = () => {
             }
         };
         fetchProduct();
-        window.scrollTo(0, 0);
-    }, [id, product]);
+    }, [id]);
 
     const handleAddToCart = () => {
         if (!product) return;
@@ -148,7 +155,7 @@ const ProductDetails = () => {
                 {/* Right Column - Info */}
                 <div className="pd-info-section">
                     <h1 className="pd-product-title">{displayProduct.name}</h1>
-                    <div className="pd-product-price">${displayProduct.price.toFixed(2)}</div>
+                    <div className="pd-product-price">{formatPrice(displayProduct.price)}</div>
 
                     {/* Description Accordion */}
                     <div className={`pd-accordion ${descOpen ? 'open' : ''}`}>
@@ -167,15 +174,26 @@ const ProductDetails = () => {
                     <div className="pd-color-section">
                         <h3 className="pd-section-label">Color</h3>
                         <div className="pd-color-options">
-                            {displayProduct.colors.map((color, idx) => (
-                                <button
-                                    key={idx}
-                                    className={`pd-color-btn ${selectedColor === idx ? 'selected' : ''}`}
-                                    style={{ backgroundColor: color }}
-                                    onClick={() => setSelectedColor(idx)}
-                                    aria-label={`Select color ${color}`}
-                                />
-                            ))}
+                            {displayProduct.colors.map((color, idx) => {
+                                const colorName = {
+                                    '#1a1a18': 'Charcoal Black',
+                                    '#8B7355': 'Antique Oak',
+                                    '#E0C9A6': 'Natural Linen',
+                                    '#f5f0eb': 'Cream White',
+                                    '#d4c9b8': 'Sand Beige'
+                                }[color] || color;
+
+                                return (
+                                    <button
+                                        key={idx}
+                                        className={`pd-color-btn ${selectedColor === idx ? 'selected' : ''}`}
+                                        style={{ backgroundColor: color }}
+                                        onClick={() => setSelectedColor(idx)}
+                                        aria-label={`Select color: ${colorName}`}
+                                        title={colorName}
+                                    />
+                                );
+                            })}
                         </div>
                     </div>
 

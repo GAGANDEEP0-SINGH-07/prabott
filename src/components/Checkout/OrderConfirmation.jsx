@@ -1,19 +1,64 @@
-import { useEffect } from 'react';
-import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, Link, useNavigate, useParams } from 'react-router-dom';
 import Footer from '../Footer/Footer';
+import api from '../../api/api';
 
 export default function OrderConfirmation() {
+    const { id } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
-    const orderData = location.state?.orderData;
+    const [fetchedOrderData, setFetchedOrderData] = useState(null);
+    const [loading, setLoading] = useState(!location.state?.orderData);
+    
+    const orderData = location.state?.orderData || fetchedOrderData;
 
     useEffect(() => {
         window.scrollTo(0, 0);
-        if (!orderData) {
-            navigate('/');
-        }
-    }, [orderData, navigate]);
+        
+        const getOrder = async () => {
+            if (!location.state?.orderData && id) {
+                try {
+                    setLoading(true);
+                    const { data } = await api.get(`/orders/${id}`);
+                    // Transform data if needed to match the checkout format
+                    setFetchedOrderData({
+                        orderId: data._id,
+                        email: data.user?.email || data.shippingAddress?.email || 'N/A',
+                        shippingDetails: {
+                            firstName: data.shippingAddress?.firstName || '',
+                            lastName: data.shippingAddress?.lastName || '',
+                            address: data.shippingAddress?.address || '',
+                            city: data.shippingAddress?.city || '',
+                            zipCode: data.shippingAddress?.postalCode || '',
+                            country: data.shippingAddress?.country || 'UK'
+                        },
+                        shippingMethod: {
+                            name: 'Standard',
+                            deliveryText: '5-7 Business Days'
+                        },
+                        estimatedDelivery: '3-5 days',
+                        items: data.orderItems.map(item => ({
+                            id: item.product,
+                            name: item.name,
+                            qty: item.qty,
+                            price: item.price,
+                            image: item.image
+                        })),
+                        total: data.totalPrice
+                    });
+                } catch (err) {
+                    console.error('Failed to fetch order:', err);
+                    navigate('/');
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
 
+        getOrder();
+    }, [id, location.state, navigate]);
+
+    if (loading) return <div className="min-h-screen flex items-center justify-center font-inter text-[#888]">Verifying your elegant order...</div>;
     if (!orderData) return null;
 
     return (
@@ -75,12 +120,12 @@ export default function OrderConfirmation() {
                                             <p className="text-[14px] font-semibold text-[#1A1A1A] truncate">{item.name}</p>
                                             <p className="text-[12px] text-[#666]">Qty: {item.qty}</p>
                                         </div>
-                                        <p className="text-[14px] font-bold text-[#1A1A1A]">£{(item.price * item.qty).toLocaleString()}</p>
+                                        <p className="text-[14px] font-bold text-[#1A1A1A]">{formatPrice(item.price * item.qty)}</p>
                                     </div>
                                 ))}
                                 <div className="mt-4 pt-4 border-t border-[#e8e4df] flex justify-between items-baseline">
                                     <p className="text-[14px] font-semibold text-[#1A1A1A]">Total Paid</p>
-                                    <p className="text-[24px] font-bold text-[#1A1A1A] tracking-tighter">£{orderData.total.toLocaleString()}</p>
+                                    <p className="text-[24px] font-bold text-[#1A1A1A] tracking-tighter">{formatPrice(orderData.total)}</p>
                                 </div>
 
                             </div>

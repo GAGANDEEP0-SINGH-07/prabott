@@ -48,12 +48,16 @@ export default function CheckoutPage() {
         { id: 'nextday', name: 'Next Day Delivery', price: 29, deliveryText: '1 Business Day' },
     ];
 
+    const [isProcessing, setIsProcessing] = useState(false);
+
     useEffect(() => {
         window.scrollTo(0, 0);
-        if (items.length === 0 && step < 4) {
+        // Don't redirect if we are already in processing or result steps, 
+        // or if we just successfully placed an order.
+        if (items.length === 0 && step < 4 && !isProcessing) {
             navigate('/cart');
         }
-    }, [items.length, navigate, step]);
+    }, [items.length, navigate, step, isProcessing]);
 
     const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const total = subtotal + shippingMethod.price;
@@ -66,6 +70,7 @@ export default function CheckoutPage() {
             if (!shippingDetails.address) e.address = 'Required';
             if (!shippingDetails.city) e.city = 'Required';
             if (!shippingDetails.zipCode) e.zipCode = 'Required';
+            if (!shippingDetails.phone || shippingDetails.phone.length < 10) e.phone = 'Valid phone number required';
             if (!shippingDetails.email || !shippingDetails.email.includes('@')) e.email = 'Valid email required';
         }
         setErrors(e);
@@ -105,7 +110,7 @@ export default function CheckoutPage() {
     const handlePaymentSubmit = async (paymentData) => {
         const { stripe, elements, cardName } = paymentData;
 
-        // Move to processing screen
+        setIsProcessing(true);
         setStep(4);
         window.scrollTo(0, 0);
 
@@ -162,6 +167,13 @@ export default function CheckoutPage() {
             });
 
             if (paymentResult.error) {
+                // 4. Cancel order on failure to prevent ghost orders
+                try {
+                    await api.delete(`/orders/${finalOrderId}/cancel`);
+                } catch (cancelErr) {
+                    console.error('Failed to cancel order after payment failure:', cancelErr);
+                }
+
                 setPaymentResult({
                     status: 'failed',
                     message: paymentResult.error.message,
@@ -198,7 +210,7 @@ export default function CheckoutPage() {
                     });
 
                     // Redirect to order confirmation page
-                    navigate('/order-confirmation', {
+                    navigate(`/order-confirmation/${finalOrderId}`, {
                         state: {
                             orderData: {
                                 orderId: finalOrderId,
@@ -417,6 +429,17 @@ export default function CheckoutPage() {
                                                     className={`w-full h-12 px-4 rounded-[12px] border ${errors.zipCode ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
                                                 />
                                             </div>
+                                            <div className="flex flex-col gap-1.5 col-span-2">
+                                                <label className="text-[11px] font-bold text-[#999] uppercase tracking-wider ml-1">Phone Number</label>
+                                                <input
+                                                    type="tel"
+                                                    placeholder="07123 456 789"
+                                                    value={shippingDetails.phone}
+                                                    onChange={(e) => setShippingDetails({ ...shippingDetails, phone: e.target.value })}
+                                                    className={`w-full h-12 px-4 rounded-[12px] border ${errors.phone ? 'border-[#E05252]' : 'border-[#e8e4df]'} bg-[#F7F5F2] text-[15px] focus:outline-none focus:border-[#1A1A1A] focus:bg-white transition-all`}
+                                                />
+                                                {errors.phone && <span className="text-[11px] text-[#E05252] font-semibold ml-1">{errors.phone}</span>}
+                                            </div>
                                         </div>
                                         <button onClick={handleNext} className="w-full h-[56px] bg-[#1A1A1A] text-white rounded-[16px] text-[15px] font-bold mt-10 hover:bg-[#333] transition-all flex items-center justify-center gap-2">
                                             Next: Shipping Method
@@ -486,9 +509,14 @@ export default function CheckoutPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    // Trigger form submission via hidden submit in PaymentForm
                                                     const form = paymentFormRef.current;
-                                                    if (form) form.requestSubmit();
+                                                    if (form) {
+                                                        if (typeof form.requestSubmit === 'function') {
+                                                            form.requestSubmit();
+                                                        } else {
+                                                            form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                                                        }
+                                                    }
                                                 }}
                                                 className="flex-[2] h-[56px] bg-[#1A1A1A] text-white rounded-[16px] text-[15px] font-bold hover:bg-[#333] transition-all flex items-center justify-center gap-2"
                                             >

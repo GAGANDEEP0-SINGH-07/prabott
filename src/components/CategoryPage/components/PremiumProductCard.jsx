@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HeartIcon } from "../../Shared/Icons";
 import { useWishlist } from "../../../context/WishlistContext";
+import { formatPrice } from "../../../utils/pricing";
 
 export function PremiumProductCard({ product, onAddCart, view }) {
     const { isInWishlist, toggleWishlist } = useWishlist();
@@ -61,11 +62,11 @@ export function PremiumProductCard({ product, onAddCart, view }) {
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 14, padding: "20px 4px 20px 0" }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                         <span style={{ fontSize: 18, fontWeight: 600, color: "#1a1a18" }}>
-                            {"\u00a3"}{price.toLocaleString()}
+                            {formatPrice(price)}
                         </span>
                         {oldPrice && (
                             <span style={{ fontSize: 13, color: "#ccc", textDecoration: "line-through" }}>
-                                {"\u00a3"}{oldPrice.toLocaleString()}
+                                {formatPrice(oldPrice)}
                             </span>
                         )}
                     </div>
@@ -124,11 +125,11 @@ export function PremiumProductCard({ product, onAddCart, view }) {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
                         <span style={{ fontSize: 15, fontWeight: 600, color: "#1a1a18", letterSpacing: ".2px" }}>
-                            {"\u00a3"}{price.toLocaleString()}
+                            {formatPrice(price)}
                         </span>
                         {oldPrice && (
                             <span style={{ fontSize: 12, color: "#ccc", textDecoration: "line-through" }}>
-                                {"\u00a3"}{oldPrice.toLocaleString()}
+                                {formatPrice(oldPrice)}
                             </span>
                         )}
                     </div>

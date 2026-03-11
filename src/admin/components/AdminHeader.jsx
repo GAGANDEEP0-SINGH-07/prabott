@@ -1,4 +1,5 @@
-import { useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const labelMap = {
@@ -21,6 +22,19 @@ export default function AdminHeader({ onMenuClick }) {
 
     const isEdit = location.pathname.includes('/admin/products/edit/');
     const title = isEdit ? 'Edit Product' : pageTitle;
+
+    const [query, setQuery] = useState('');
+    const navigate = useNavigate();
+
+    const handleSearch = (e) => {
+        if (e.key === 'Enter' && query.trim()) {
+            // If on orders page, search orders? For now, let's just go to products search
+            // unless we are specifically on orders page
+            const target = location.pathname.includes('/admin/orders') ? '/admin/orders' : '/admin/products';
+            navigate(`${target}?q=${encodeURIComponent(query.trim())}`);
+            setQuery('');
+        }
+    };
 
     return (
         <header className="sticky top-0 z-40 bg-white border-b border-slate-200 h-16 px-4 md:px-6 flex items-center justify-between shadow-sm">
@@ -52,6 +66,9 @@ export default function AdminHeader({ onMenuClick }) {
                     <input
                         type="text"
                         placeholder="Search here..."
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        onKeyDown={handleSearch}
                         className="pl-10 pr-4 py-2 w-64 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 placeholder:text-slate-400"
                     />
                 </div>

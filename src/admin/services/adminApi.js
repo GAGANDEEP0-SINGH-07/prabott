@@ -5,13 +5,9 @@ const adminApi = axios.create({
 });
 
 adminApi.interceptors.request.use((config) => {
-    const userInfo =
-        localStorage.getItem('prabott_user') || sessionStorage.getItem('prabott_user');
-    if (userInfo) {
-        try {
-            const parsed = JSON.parse(userInfo);
-            if (parsed.token) config.headers.Authorization = `Bearer ${parsed.token}`;
-        } catch (_) { }
+    const token = localStorage.getItem('prabott_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
 });

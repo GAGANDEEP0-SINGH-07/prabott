@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import AdminTable from '../components/AdminTable';
 import { fetchAdminOrders, updateOrderStatus, deleteOrder } from '../services/adminApi';
+import { formatPrice } from '../../utils/pricing';
 
 const STATUS_COLORS = {
     Pending: { classes: 'bg-amber-50 text-amber-600 border-amber-200' },
@@ -14,19 +15,36 @@ const STATUS_COLORS = {
 };
 
 export default function Orders() {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialSearch = searchParams.get('q') || '';
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [search, setSearch] = useState(initialSearch);
 
-    const load = () => {
+    // Update search if URL changes
+    useEffect(() => {
+        const q = searchParams.get('q') || '';
+        if (q !== search) {
+            setSearch(q);
+            setPage(1);
+        }
+    }, [searchParams]);
+
+    const load = useCallback(() => {
         setLoading(true);
-        fetchAdminOrders({ limit: 100 })
-            .then(r => setOrders(r.data.orders))
+        fetchAdminOrders({ page, limit: 10, keyword: search })
+            .then(r => {
+                setOrders(r.data.orders);
+                setTotal(r.data.total || 0);
+            })
             .catch(console.error)
             .finally(() => setLoading(false));
-    };
+    }, [page, search]);
 
-    useEffect(load, []);
+    useEffect(load, [load]);
 
     const handleUpdateStatus = async (id, field, value) => {
         try {
@@ -39,7 +57,8 @@ export default function Orders() {
         if (!window.confirm('Cancel and delete this order completely?')) return;
         try {
             await deleteOrder(id);
-            setOrders(prev => prev.filter(o => o._id !== id));
+            if (orders.length === 1 && page > 1) setPage(p => p - 1);
+            else load();
         } catch { alert('Failed to delete order'); }
     };
 
@@ -77,7 +96,7 @@ export default function Orders() {
         },
         {
             key: 'total', accessor: 'totalAmount', header: 'Total', render: (row) => (
-                <span className="font-bold text-emerald-600">${Number(row.totalAmount).toFixed(2)}</span>
+                <span className="font-bold text-emerald-600">{formatPrice(row.totalAmount)}</span>
             )
         },
         {
@@ -132,16 +151,22 @@ export default function Orders() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-xl font-bold text-slate-800 tracking-tight">Orders Management</h2>
-                    <p className="text-sm font-medium text-slate-500 mt-1">{orders.length} total orders placed</p>
+                    <p className="text-sm font-medium text-slate-500 mt-1">{total} total orders placed</p>
                 </div>
             </div>
-            {loading ? (
-                <div className="flex items-center justify-center min-h-[40vh]">
-                    <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
-                </div>
-            ) : (
-                <AdminTable columns={columns} data={orders} searchPlaceholder="Search by customer name or email…" emptyText="No orders found." />
-            )}
+            <AdminTable
+                columns={columns}
+                data={orders}
+                serverSide
+                totalItems={total}
+                currentPage={page}
+                pageSize={10}
+                onPageChange={setPage}
+                onSearchChange={(v) => { setSearch(v); setPage(1); }}
+                loading={loading}
+                searchPlaceholder="Search by customer name or email…"
+                emptyText="No orders found."
+            />
         </div>
     );
 }

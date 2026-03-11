@@ -46,17 +46,13 @@ export default function Navbar() {
         return () => { document.body.style.overflow = ''; };
     }, [drawerOpen]);
 
-    // Memoized callbacks to prevent child re-renders
-    const handleSetSearchOpen = useCallback((v) => setSearchOpen(v), []);
-    const handleSetDrawerOpen = useCallback((v) => setDrawerOpen(v), []);
-
     return (
         <>
-            <SearchOverlay searchOpen={searchOpen} setSearchOpen={handleSetSearchOpen} />
+            <SearchOverlay searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
 
             <MobileDrawer
                 drawerOpen={drawerOpen}
-                setDrawerOpen={handleSetDrawerOpen}
+                setDrawerOpen={setDrawerOpen}
                 navLinks={navLinks}
             />
 
@@ -87,9 +83,9 @@ export default function Navbar() {
                     <DesktopNav navLinks={navLinks} />
 
                     <NavIcons
-                        setSearchOpen={handleSetSearchOpen}
+                        setSearchOpen={setSearchOpen}
                         drawerOpen={drawerOpen}
-                        setDrawerOpen={handleSetDrawerOpen}
+                        setDrawerOpen={setDrawerOpen}
                     />
                 </nav>
             </header>

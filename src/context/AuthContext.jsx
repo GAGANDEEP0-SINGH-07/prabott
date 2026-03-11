@@ -4,26 +4,44 @@ import api from '../api';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(() => {
-        const saved = localStorage.getItem('prabott_user') || sessionStorage.getItem('prabott_user');
-        return saved ? JSON.parse(saved) : null;
-    });
-
+    const [user, setUser] = useState(null);
+    const [token, setToken] = useState(() => localStorage.getItem('prabott_token'));
     const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Start as loading to fetch profile
+
+    const fetchProfile = useCallback(async () => {
+        if (!token) {
+            setLoading(false);
+            return;
+        }
+        try {
+            const { data } = await api.get('/auth/profile');
+            setUser(data);
+        } catch (err) {
+            console.error("Session expired or invalid token");
+            setToken(null);
+            localStorage.removeItem('prabott_token');
+        } finally {
+            setLoading(false);
+        }
+    }, [token]);
+
+    useEffect(() => {
+        fetchProfile();
+    }, [fetchProfile]);
 
     const login = useCallback(async (userData, remember = false) => {
         setLoading(true);
         setError(null);
         try {
             const { data } = await api.post('/auth/login', userData);
-            setUser(data);
-            if (remember) {
-                localStorage.setItem('prabott_user', JSON.stringify(data));
-            } else {
-                sessionStorage.setItem('prabott_user', JSON.stringify(data));
-            }
-            return { success: true, user: data };
+            const { token: userToken, ...userWithoutToken } = data;
+            
+            setToken(userToken);
+            setUser(userWithoutToken);
+            localStorage.setItem('prabott_token', userToken);
+            
+            return { success: true, user: userWithoutToken };
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed');
             return { success: false, message: err.response?.data?.message || 'Login failed' };
@@ -32,17 +50,17 @@ export function AuthProvider({ children }) {
         }
     }, []);
 
-    const signup = useCallback(async (userData, remember = false) => {
+    const signup = useCallback(async (userData) => {
         setLoading(true);
         setError(null);
         try {
             const { data } = await api.post('/auth/register', userData);
-            setUser(data);
-            if (remember) {
-                localStorage.setItem('prabott_user', JSON.stringify(data));
-            } else {
-                sessionStorage.setItem('prabott_user', JSON.stringify(data));
-            }
+            const { token: userToken, ...userWithoutToken } = data;
+            
+            setToken(userToken);
+            setUser(userWithoutToken);
+            localStorage.setItem('prabott_token', userToken);
+            
             return { success: true };
         } catch (err) {
             setError(err.response?.data?.message || 'Signup failed');
@@ -54,12 +72,12 @@ export function AuthProvider({ children }) {
 
     const logout = useCallback(() => {
         setUser(null);
-        localStorage.removeItem('prabott_user');
-        sessionStorage.removeItem('prabott_user');
+        setToken(null);
+        localStorage.removeItem('prabott_token');
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, error, loading }}>
+        <AuthContext.Provider value={{ user, token, login, signup, logout, error, loading }}>
             {children}
         </AuthContext.Provider>
     );

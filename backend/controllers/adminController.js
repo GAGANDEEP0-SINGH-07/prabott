@@ -168,9 +168,23 @@ const getAdminOrders = async (req, res) => {
     try {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 20;
+        const keyword = req.query.keyword;
 
-        const count = await Order.countDocuments();
-        const orders = await Order.find({})
+        let query = {};
+        if (keyword) {
+            // Find users matching keyword to filter orders by userId
+            const users = await User.find({
+                $or: [
+                    { name: { $regex: keyword, $options: 'i' } },
+                    { email: { $regex: keyword, $options: 'i' } }
+                ]
+            }).select('_id');
+            const userIds = users.map(u => u._id);
+            query = { userId: { $in: userIds } };
+        }
+
+        const count = await Order.countDocuments(query);
+        const orders = await Order.find(query)
             .sort({ createdAt: -1 })
             .skip(limit * (page - 1))
             .limit(limit)

@@ -105,7 +105,7 @@ const stripeWebhook = async (req, res) => {
     }
 
     // Return a 200 response to acknowledge receipt of the event
-    res.send().status(200);
+    res.status(200).send();
 };
 
 module.exports = {

@@ -101,6 +101,13 @@ const updateProfile = async (req, res) => {
             user.address = req.body.address || user.address;
 
             if (req.body.password) {
+                if (!req.body.currentPassword) {
+                    return res.status(400).json({ message: 'Current password is required to change password' });
+                }
+                const isMatch = await user.matchPassword(req.body.currentPassword);
+                if (!isMatch) {
+                    return res.status(401).json({ message: 'Incorrect current password' });
+                }
                 user.password = req.body.password;
             }
 

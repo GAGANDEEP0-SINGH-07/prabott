@@ -1,3 +1,5 @@
+import { formatPrice } from '../../utils/pricing';
+
 export default function PaymentSummary({ items, subtotal, shippingMethod, total }) {
     return (
         <div className="sticky top-[100px] bg-white rounded-[24px] p-8 text-[#1A1A1A] border border-[#f0eeeb] shadow-sm">
@@ -15,7 +17,7 @@ export default function PaymentSummary({ items, subtotal, shippingMethod, total 
                             <p className="text-[12px] text-[#999] mt-0.5">Quantity: {item.quantity}</p>
                         </div>
                         <div className="text-[15px] font-bold text-[#1A1A1A]">
-                            £{(item.price * item.quantity).toLocaleString()}
+                            {formatPrice(item.price * item.quantity)}
                         </div>
                     </div>
                 ))}
@@ -25,12 +27,12 @@ export default function PaymentSummary({ items, subtotal, shippingMethod, total 
             <div className="flex flex-col gap-4 py-6 border-y border-[#f0eeeb] mb-6">
                 <div className="flex justify-between text-[14px]">
                     <span className="text-[#888] font-medium">Subtotal</span>
-                    <span className="font-bold text-[#1A1A1A]">£{subtotal.toLocaleString()}</span>
+                    <span className="font-bold text-[#1A1A1A]">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-[14px]">
                     <span className="text-[#888] font-medium">Shipping ({shippingMethod.name})</span>
                     <span className={`font-bold ${shippingMethod.price === 0 ? 'text-[#4CAF7D]' : 'text-[#1A1A1A]'}`}>
-                        {shippingMethod.price === 0 ? 'FREE' : `+£${shippingMethod.price}`}
+                        {shippingMethod.price === 0 ? 'FREE' : `+${formatPrice(shippingMethod.price)}`}
                     </span>
                 </div>
                 {/* Promo code */}
@@ -49,7 +51,7 @@ export default function PaymentSummary({ items, subtotal, shippingMethod, total 
             {/* Total */}
             <div className="flex justify-between items-baseline pt-2">
                 <span className="text-[16px] font-bold text-[#1A1A1A]">Total</span>
-                <span className="text-[32px] font-bold tracking-tighter text-[#1A1A1A]">£{total.toLocaleString()}</span>
+                <span className="text-[32px] font-bold tracking-tighter text-[#1A1A1A]">{formatPrice(total)}</span>
             </div>
         </div>
     );

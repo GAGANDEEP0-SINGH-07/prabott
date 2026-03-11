@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchAdminOrderDetails, updateOrderStatus } from '../services/adminApi';
+import { formatPrice } from '../../utils/pricing';
 
 const STATUS_OPTIONS = ['Pending', 'Processing', 'Shipped', 'Delivered'];
 const PAYMENT_STATUS_OPTIONS = ['Pending', 'Paid', 'Failed', 'Completed'];
@@ -83,10 +84,10 @@ export default function OrderDetails() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h4 className="font-bold text-slate-800 truncate">{item.productId?.name || 'Deleted Product'}</h4>
-                                        <p className="text-xs text-slate-500 font-medium">${item.price.toFixed(2)} x {item.quantity}</p>
+                                        <p className="text-xs text-slate-500 font-medium">{formatPrice(item.price)} x {item.quantity}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-slate-800">${(item.price * item.quantity).toFixed(2)}</p>
+                                        <p className="font-bold text-slate-800">{formatPrice(item.price * item.quantity)}</p>
                                     </div>
                                 </div>
                             ))}
@@ -94,11 +95,11 @@ export default function OrderDetails() {
                         <div className="p-5 bg-slate-50/50 space-y-2">
                             <div className="flex justify-between text-sm">
                                 <span className="text-slate-500 font-medium">Subtotal</span>
-                                <span className="text-slate-800 font-bold">${order.totalAmount.toFixed(2)}</span>
+                                <span className="text-slate-800 font-bold">{formatPrice(order.totalAmount)}</span>
                             </div>
                             <div className="flex justify-between text-base pt-2 border-t border-slate-200">
                                 <span className="text-slate-800 font-bold">Total</span>
-                                <span className="text-indigo-600 font-extrabold text-lg">${order.totalAmount.toFixed(2)}</span>
+                                <span className="text-indigo-600 font-extrabold text-lg">{formatPrice(order.totalAmount)}</span>
                             </div>
                         </div>
                     </div>

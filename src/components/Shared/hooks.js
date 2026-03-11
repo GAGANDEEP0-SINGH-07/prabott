@@ -8,5 +8,5 @@ export function useReveal() {
         );
         document.querySelectorAll(".rv").forEach(el => obs.observe(el));
         return () => obs.disconnect();
-    });
+    }, []);
 }

@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { formatPrice } from '../../../utils/pricing';
 
 function ProductCard({ product }) {
     return (
@@ -33,7 +34,7 @@ function ProductCard({ product }) {
                     {product.category}
                 </span>
                 <span className="text-[0.72rem] font-semibold text-[#111] tracking-[-0.01em]">
-                    {product.price}
+                    {formatPrice(product.price)}
                 </span>
             </div>
         </div>

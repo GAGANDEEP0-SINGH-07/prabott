@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect, memo } from 'react';
 import { PremiumProductCard as ProductCard } from '../CategoryPage/components/PremiumProductCard';
 import { useCart } from '../../context/CartContext';
-import { GlobalStyles } from '../Shared/GlobalStyles';
 import ProductHeader from './components/ProductHeader';
 import api from '../../api';
 
@@ -62,4 +61,4 @@ function Products() {
     );
 }
 
-export default memo(Products);
+export default Products;

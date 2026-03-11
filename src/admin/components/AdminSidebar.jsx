@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -53,6 +54,7 @@ const navItems = [
 export default function AdminSidebar({ isOpen, setIsOpen }) {
     const { logout } = useAuth();
     const navigate = useNavigate();
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -60,6 +62,37 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
     };
 
     return (
+        <>
+            {/* Logout Confirmation Modal Overlay */}
+            {showLogoutModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" style={{ backgroundColor: 'rgba(2, 6, 23, 0.7)', backdropFilter: 'blur(4px)' }}>
+                    <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-scale-in text-center">
+                        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="32" height="32">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                <polyline points="16,17 21,12 16,7" /><line x1="21" y1="12" x2="9" y2="12" />
+                            </svg>
+                        </div>
+                        <h3 className="text-slate-900 font-bold text-xl mb-2">Sign out?</h3>
+                        <p className="text-slate-500 text-[14px] leading-relaxed mb-8">Are you sure you want to exit the admin dashboard? You'll need to log in again to access these controls.</p>
+                        
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => setShowLogoutModal(false)}
+                                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-[14px] hover:bg-slate-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleLogout}
+                                className="flex-1 px-4 py-3 rounded-xl bg-red-500 text-white font-semibold text-[14px] hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all hover:-translate-y-0.5"
+                            >
+                                Yes, Sign out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         <aside className={`
             fixed top-0 left-0 z-50 h-screen w-[260px] 
             bg-gradient-to-b from-slate-900 to-slate-800
@@ -123,7 +156,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
             {/* Footer / User Area */}
             <div className="p-4 border-t border-white/5 mt-auto">
                 <button
-                    onClick={handleLogout}
+                    onClick={() => setShowLogoutModal(true)}
                     className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-red-500/10 text-red-500 text-[14px] font-medium hover:bg-red-500/20 hover:text-red-400 transition-all duration-200 focus:outline-none"
                 >
                     <div className="flex items-center gap-3">
@@ -136,5 +169,6 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
                 </button>
             </div>
         </aside>
+    </>
     );
 }

@@ -1,12 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 
 export default function ProfileDropdown() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
+
+    // Close dropdown on route change
+    useEffect(() => {
+        setOpen(false);
+    }, [location.pathname]);
 
     // Close dropdown on outside click
     useEffect(() => {

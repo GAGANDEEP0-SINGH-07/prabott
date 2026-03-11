@@ -25,7 +25,6 @@ export default function PremiumCategoryApp({ initialCategory = "Furniture" }) {
 
     return (
         <div style={{ minHeight: "100vh", background: "#FDFCFA" }}>
-            <GlobalStyles />
             {/* Navbar is in MainLayout, SearchOverlay is in Navbar */}
             <main style={{ paddingTop: 80 }}>
                 <CategoryPage key={activePage} page={activePage} onAddCart={handleAddCart} />

@@ -1,9 +1,46 @@
-import { useNavigate, NavLink } from 'react-router-dom';
+import { useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { useEffect, useRef } from 'react';
 
 export default function MobileDrawer({ drawerOpen, setDrawerOpen, navLinks }) {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, logout } = useAuth();
+    const drawerRef = useRef(null);
+
+    // Close drawer when location changes
+    useEffect(() => {
+        setDrawerOpen(false);
+    }, [location.pathname, setDrawerOpen]);
+
+    // Focus trap for accessibility
+    useEffect(() => {
+        if (!drawerOpen) return;
+
+        const handleTab = (e) => {
+            if (e.key !== 'Tab') return;
+            const focusableElms = drawerRef.current?.querySelectorAll('button, [href], input, select, textarea');
+            if (!focusableElms || focusableElms.length === 0) return;
+            
+            const first = focusableElms[0];
+            const last = focusableElms[focusableElms.length - 1];
+
+            if (e.shiftKey) { // Shift + Tab
+                if (document.activeElement === first) {
+                    last.focus();
+                    e.preventDefault();
+                }
+            } else { // Tab
+                if (document.activeElement === last) {
+                    first.focus();
+                    e.preventDefault();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleTab);
+        return () => window.removeEventListener('keydown', handleTab);
+    }, [drawerOpen]);
 
     const handleSignIn = () => {
         setDrawerOpen(false);
@@ -32,9 +69,13 @@ export default function MobileDrawer({ drawerOpen, setDrawerOpen, navLinks }) {
 
             {/* ── Mobile Drawer ── */}
             <div
+                ref={drawerRef}
                 className={`fixed top-0 right-0 bottom-0 w-[280px] bg-white z-[250] flex flex-col gap-2 shadow-[-8px_0_40px_rgba(0,0,0,0.12)] transition-transform duration-[380ms] ease-[cubic-bezier(0.4,0,0.2,1)] ${drawerOpen ? 'translate-x-0' : 'translate-x-full'
                     }`}
                 style={{ padding: '28px 24px' }}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Mobile menu"
             >
                 <div className="flex items-center justify-between mb-5">
                     <span className="text-[1.1rem] font-bold text-[#111] tracking-[-0.03em]">Prabott.</span>

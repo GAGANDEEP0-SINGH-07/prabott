@@ -26,7 +26,9 @@ export function CategoryPage({ page, onAddCart }) {
 
     useReveal();
 
-    const [limit, setLimit] = useState(8);
+    const [pageNumber, setPageNumber] = useState(1);
+    const [pages, setPages] = useState(1);
+    const [totalProducts, setTotalProducts] = useState(0);
 
     const [apiProducts, setApiProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -35,8 +37,16 @@ export function CategoryPage({ page, onAddCart }) {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                // Fetch up to 100 products for this category to ensure we have enough for pagination
-                const { data: resData } = await api.get(`/products?category=${encodeURIComponent(page)}&pageNumber=1`);
+                const params = new URLSearchParams({
+                    category: page,
+                    pageNumber: pageNumber,
+                    minPrice: 0,
+                    maxPrice: priceRange,
+                    // Note: backend doesn't support 'rating' or 'sort' in getProducts yet, 
+                    // I will add them to controller next.
+                });
+
+                const { data: resData } = await api.get(`/products?${params.toString()}`);
 
                 // Map DB schema to frontend PremiumProductCard schema
                 const adapted = (resData.products || []).map(p => ({
@@ -45,26 +55,36 @@ export function CategoryPage({ page, onAddCart }) {
                     cat: p.category,
                     price: p.price,
                     img: p.images?.[0] || 'https://via.placeholder.com/600',
-                    rating: p.ratings || 5, // Fallback if no ratings exist
-                    oldPrice: null, // Optional
+                    rating: p.ratings || 5, 
+                    oldPrice: null,
                 }));
-                setApiProducts(adapted);
+                
+                // If it's the first page, replace; otherwise append for "Load More" effect
+                if (pageNumber === 1) {
+                    setApiProducts(adapted);
+                } else {
+                    setApiProducts(prev => [...prev, ...adapted]);
+                }
+                setPages(resData.pages || 1);
             } catch (error) {
                 console.error("Error fetching products", error);
-                setApiProducts([]);
+                if (pageNumber === 1) setApiProducts([]);
             } finally {
                 setLoading(false);
             }
         };
         fetchProducts();
-    }, [page]);
+    }, [page, pageNumber, priceRange]); // Re-fetch on filter changes
 
+    // Reset pagination when category or price changes
+    useEffect(() => {
+        setPageNumber(1);
+        setApiProducts([]);
+    }, [page, priceRange]);
+
+    // Local sorting/filtering for things not yet in backend
     const filtered = apiProducts
         .filter(p => activeFilter === "All" || p.cat === activeFilter)
-        .filter(p => {
-            const price = typeof p.price === 'number' ? p.price : parseFloat(p.price.toString().replace(/[^0-9.]/g, ''));
-            return price <= priceRange;
-        })
         .filter(p => !activeRating || p.rating >= activeRating)
         .sort((a, b) => {
             const priceA = typeof a.price === 'number' ? a.price : parseFloat(a.price.toString().replace(/[^0-9.]/g, ''));
@@ -76,7 +96,7 @@ export function CategoryPage({ page, onAddCart }) {
             return 0;
         });
 
-    const paginated = filtered.slice(0, limit);
+    const paginated = filtered; // It's already paginated by backend + local scroll
 
     return (
         <div style={{ fontFamily: "'Inter',sans-serif" }}>
@@ -155,13 +175,13 @@ export function CategoryPage({ page, onAddCart }) {
                                 ))}
                             </div>
                         )}
-                        {(!loading && limit < filtered.length) && (
+                        {(!loading && pageNumber < pages) && (
                             <div className="rv" style={{
                                 display: "flex", justifyContent: "center", alignItems: "center",
                                 gap: 8, marginTop: 72,
                             }}>
                                 <button
-                                    onClick={() => setLimit(l => l + 8)}
+                                    onClick={() => setPageNumber(p => p + 1)}
                                     style={{
                                         display: "flex", alignItems: "center", gap: 12,
                                         padding: "16px 48px", border: "1px solid #1a1a18", borderRadius: 12,

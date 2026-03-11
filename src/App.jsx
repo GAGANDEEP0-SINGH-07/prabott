@@ -46,17 +46,25 @@ function ProtectedRoute({ children }) {
 
 /** Admin Route Guard */
 function AdminRoute({ children }) {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
-  // Assuming user role could be 'admin'
-  if (user.role !== 'admin') return <Navigate to="/" replace />;
+  const { user, loading } = useAuth();
+  
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">Loading...</div>;
+  if (!user || user.role !== 'admin') return <Navigate to="/" replace />;
+  
   return children;
 }
+
+import GlobalStyles from './components/Shared/GlobalStyles';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 
 /** Shared layout — Navbar persists across all main routes */
 function MainLayout() {
   return (
     <div className="font-inter min-h-screen bg-[#ffffff]">
+      <Helmet>
+        <title>Prabott. | Elegant Living & Premium Furniture</title>
+        <meta name="description" content="Discover curated premium furniture and decor at Prabott. Elevate your space with our elegant collections." />
+      </Helmet>
       <Navbar />
       <Outlet />
     </div>
@@ -81,8 +89,23 @@ function ShopHome() {
 }
 
 // Wrapper for the premium app to extract URL param if we navigate directly to a category
-function PremiumAppWrapper() {
+function PremiumAppWrapper({ isSearch = false }) {
   const { categoryName } = useParams();
+  const [searchParams] = (function() {
+    try {
+      const { useSearchParams } = require('react-router-dom');
+      return useSearchParams();
+    } catch (e) {
+      // If we can't use it directly here (App.jsx is often where it's defined), 
+      // we'll use window.location search
+      return [new URLSearchParams(window.location.search)];
+    }
+  })();
+
+  if (isSearch) {
+    const query = searchParams.get('q') || "";
+    return <PremiumCategoryApp initialCategory="Search" searchQuery={query} />;
+  }
 
   // Try to match URL param to accepted category names, fallback to Furniture
   let matchedCat = "Furniture";
@@ -103,7 +126,9 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
-            <Routes>
+            <HelmetProvider>
+              <GlobalStyles />
+              <Routes>
               {/* Main layout with shared Navbar */}
               <Route element={<MainLayout />}>
                 <Route path="/" element={<ShopHome />} />
@@ -114,9 +139,9 @@ export default function App() {
                   </Suspense>
                 } />
 
-                <Route path="/collections" element={
+                <Route path="/search" element={
                   <Suspense fallback={<div className="min-h-screen bg-[#FDFCFA]" />}>
-                    <PremiumCategoryApp initialCategory="Furniture" />
+                    <PremiumAppWrapper isSearch={true} />
                   </Suspense>
                 } />
 
@@ -147,7 +172,7 @@ export default function App() {
                   </ProtectedRoute>
                 } />
 
-                <Route path="/order-confirmation" element={
+                <Route path="/order-confirmation/:id" element={
                   <ProtectedRoute>
                     <Suspense fallback={<div className="min-h-screen bg-[#FDFCFA]" />}>
                       <OrderConfirmation />
@@ -203,6 +228,7 @@ export default function App() {
                 </Suspense>
               } />
             </Routes>
+            </HelmetProvider>
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>

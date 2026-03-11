@@ -133,4 +133,47 @@ const removeFromCart = async (req, res) => {
     }
 };
 
-module.exports = { addToCart, getCart, removeFromCart };
+// @desc    Update cart item quantity
+// @route   PUT /api/cart/update
+// @access  Private
+const updateCartQuantity = async (req, res) => {
+    try {
+        const { productId, quantity } = req.body;
+
+        if (quantity < 1) {
+            return res.status(400).json({ message: 'Quantity must be at least 1' });
+        }
+
+        let cart = await Cart.findOne({ userId: req.user._id });
+
+        if (cart) {
+            const itemIndex = cart.products.findIndex(
+                (p) => p.productId.toString() === productId
+            );
+
+            if (itemIndex > -1) {
+                cart.products[itemIndex].quantity = quantity;
+
+                await cart.populate('products.productId', 'price');
+                cart.totalPrice = cart.products.reduce((acc, item) => {
+                    if (item.productId) {
+                        return acc + (item.productId.price * item.quantity);
+                    }
+                    return acc;
+                }, 0);
+
+                await cart.save();
+                const updatedCart = await Cart.findOne({ userId: req.user._id }).populate('products.productId', 'name price images');
+                res.status(200).json(updatedCart);
+            } else {
+                res.status(404).json({ message: 'Product not found in cart' });
+            }
+        } else {
+            res.status(404).json({ message: 'Cart not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { addToCart, getCart, removeFromCart, updateCartQuantity };

@@ -7,20 +7,27 @@ const api = axios.create({
 // Request interceptor to add token
 api.interceptors.request.use(
     (config) => {
-        const userInfo = localStorage.getItem('prabott_user') || sessionStorage.getItem('prabott_user');
-        if (userInfo) {
-            try {
-                const parsedUserInfo = JSON.parse(userInfo);
-                if (parsedUserInfo.token) {
-                    config.headers.Authorization = `Bearer ${parsedUserInfo.token}`;
-                }
-            } catch (error) {
-                console.error('Error parsing user info from local storage:', error);
-            }
+        const token = localStorage.getItem('prabott_token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
+    (error) => Promise.reject(error)
+);
+
+// Response interceptor for centralized error handling
+api.interceptors.response.use(
+    (response) => response,
     (error) => {
+        if (error.response?.status === 401) {
+            // Auto logout on unauthorized
+            localStorage.removeItem('prabott_token');
+            // We can't easily access AuthContext here, so we'll use a custom event or window redirect if needed,
+            // but for now, clearing the token will trigger AuthContext's internal state change if it's watching.
+            // A more robust way is to reload or use a shared state manager.
+            window.location.href = '/login?expired=true';
+        }
         return Promise.reject(error);
     }
 );

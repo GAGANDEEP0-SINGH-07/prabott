@@ -5,31 +5,40 @@ const Product = require('../models/Product');
 // @access  Public
 const getProducts = async (req, res) => {
     try {
-        const pageSize = 10;
+        const pageSize = Number(req.query.pageSize) || 8;
         const page = Number(req.query.pageNumber) || 1;
 
         const keyword = req.query.keyword
             ? {
-                name: {
-                    $regex: req.query.keyword,
-                    $options: 'i',
-                },
+                $or: [
+                    { name: { $regex: req.query.keyword, $options: 'i' } },
+                    { description: { $regex: req.query.keyword, $options: 'i' } }
+                ]
             }
             : {};
 
         const category = req.query.category ? { category: req.query.category } : {};
-
         const minPrice = req.query.minPrice ? Number(req.query.minPrice) : 0;
         const maxPrice = req.query.maxPrice ? Number(req.query.maxPrice) : Number.MAX_SAFE_INTEGER;
+        const minRating = req.query.minRating ? Number(req.query.minRating) : 0;
 
-        const priceFilter = { price: { $gte: minPrice, $lte: maxPrice } };
+        const query = { ...keyword, ...category, price: { $gte: minPrice, $lte: maxPrice }, ratings: { $gte: minRating } };
 
-        const count = await Product.countDocuments({ ...keyword, ...category, ...priceFilter });
-        const products = await Product.find({ ...keyword, ...category, ...priceFilter })
+        // Sorting
+        let sort = { createdAt: -1 };
+        if (req.query.sort) {
+            if (req.query.sort === 'price-asc') sort = { price: 1 };
+            else if (req.query.sort === 'price-desc') sort = { price: -1 };
+            else if (req.query.sort === 'rating') sort = { ratings: -1 };
+        }
+
+        const count = await Product.countDocuments(query);
+        const products = await Product.find(query)
+            .sort(sort)
             .limit(pageSize)
             .skip(pageSize * (page - 1));
 
-        res.json({ products, page, pages: Math.ceil(count / pageSize) });
+        res.json({ products, page, pages: Math.ceil(count / pageSize), total: count });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

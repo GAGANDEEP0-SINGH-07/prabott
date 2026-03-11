@@ -38,4 +38,4 @@ function CollectionCard({ src, alt, label, indicator, children }) {
     );
 }
 
-export default memo(CollectionCard);
+export default CollectionCard;

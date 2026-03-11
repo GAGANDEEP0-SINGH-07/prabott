@@ -4,6 +4,7 @@ import {
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie
 } from 'recharts';
 import { fetchAnalytics } from '../services/adminApi';
+import { formatPrice } from '../../utils/pricing';
 
 export default function Analytics() {
     const [data, setData] = useState(null);
@@ -49,8 +50,9 @@ export default function Analytics() {
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} tickFormatter={v => `$${v}`} dx={-10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} tickFormatter={v => formatPrice(v)} dx={-10} />
                                 <Tooltip
+                                    formatter={(v) => [formatPrice(v), 'Revenue']}
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                                 />
                                 <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
@@ -94,7 +96,7 @@ export default function Analytics() {
                 <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
                     <div className="p-6">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Avg. Order Value</p>
-                        <h4 className="text-xl font-bold text-slate-800">${(data.totalRevenue / data.totalOrders || 0).toFixed(2)}</h4>
+                        <h4 className="text-xl font-bold text-slate-800">{formatPrice(data.totalRevenue / data.totalOrders || 0)}</h4>
                     </div>
                     <div className="p-6">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Conversion Rate</p>

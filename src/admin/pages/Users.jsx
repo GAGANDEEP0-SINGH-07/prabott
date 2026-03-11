@@ -1,29 +1,30 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AdminTable from '../components/AdminTable';
-import { fetchAdminUsers, updateUserRole, suspendUser, deleteUser } from '../services/adminApi';
-
 export default function Users() {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [search, setSearch] = useState('');
 
-    const load = () => {
+    const load = useCallback(() => {
         setLoading(true);
-        fetchAdminUsers({ limit: 100 })
-            .then(r => setUsers(r.data.users))
+        fetchAdminUsers({ page, keyword: search, limit: 10 })
+            .then(r => {
+                setUsers(r.data.users);
+                setTotal(r.data.total || 0);
+            })
             .catch(console.error)
             .finally(() => setLoading(false));
-    };
+    }, [page, search]);
 
-    useEffect(load, []);
+    useEffect(load, [load]);
 
     const handleRole = async (id, currentRole) => {
         const newRole = currentRole === 'admin' ? 'customer' : 'admin';
         if (!window.confirm(`Change role to ${newRole.toUpperCase()}?`)) return;
         try {
             await updateUserRole(id, newRole);
-            setUsers(prev => prev.map(u => u._id === id ? { ...u, role: newRole } : u));
+            load();
         } catch (err) { alert(err.response?.data?.message || 'Failed to update role'); }
     };
 
@@ -32,7 +33,7 @@ export default function Users() {
         if (!window.confirm(`${action} this account?`)) return;
         try {
             await suspendUser(id);
-            setUsers(prev => prev.map(u => u._id === id ? { ...u, suspended: !isSuspended } : u));
+            load();
         } catch (err) { alert(err.response?.data?.message || `Failed to ${action.toLowerCase()} user`); }
     };
 
@@ -40,7 +41,8 @@ export default function Users() {
         if (!window.confirm(`Permanently delete user "${name}"?`)) return;
         try {
             await deleteUser(id);
-            setUsers(prev => prev.filter(u => u._id !== id));
+            if (users.length === 1 && page > 1) setPage(p => p - 1);
+            else load();
         } catch (err) { alert(err.response?.data?.message || 'Failed to delete user'); }
     };
 
@@ -124,16 +126,22 @@ export default function Users() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-xl font-bold text-slate-800 tracking-tight">Users Management</h2>
-                    <p className="text-sm font-medium text-slate-500 mt-1">{users.length} registered accounts</p>
+                    <p className="text-sm font-medium text-slate-500 mt-1">{total} registered accounts</p>
                 </div>
             </div>
-            {loading ? (
-                <div className="flex items-center justify-center min-h-[40vh]">
-                    <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
-                </div>
-            ) : (
-                <AdminTable columns={columns} data={users} searchPlaceholder="Search by name or email…" emptyText="No users found." />
-            )}
+            <AdminTable
+                columns={columns}
+                data={users}
+                serverSide
+                totalItems={total}
+                currentPage={page}
+                pageSize={10}
+                onPageChange={setPage}
+                onSearchChange={(v) => { setSearch(v); setPage(1); }}
+                loading={loading}
+                searchPlaceholder="Search by name or email…"
+                emptyText="No users found."
+            />
         </div>
     );
 }
