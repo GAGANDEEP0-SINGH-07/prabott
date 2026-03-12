@@ -295,10 +295,7 @@ const getAdminUserDetails = async (req, res) => {
 const updateUserRole = async (req, res) => {
     try {
         const { role } = req.body;
-        if (role === 'admin') {
-            return res.status(403).json({ message: 'Promoting to Admin is only allowed via system scripts for security.' });
-        }
-        if (!['customer', 'user'].includes(role)) {
+        if (!['customer', 'admin', 'user'].includes(role)) {
             return res.status(400).json({ message: 'Invalid role' });
         }
         // Prevent demoting yourself
