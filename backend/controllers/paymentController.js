@@ -1,5 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 
 // @desc    Create Payment Intent
 // @route   POST /api/payments/create-payment-intent
@@ -68,6 +69,9 @@ const stripeWebhook = async (req, res) => {
             if (orderId) {
                 const order = await Order.findById(orderId);
                 if (order) {
+                    if (order.paymentStatus === 'Paid') {
+                        break;
+                    }
                     order.paymentStatus = 'Paid';
                     order.orderStatus = 'Processing';
 
@@ -78,6 +82,13 @@ const stripeWebhook = async (req, res) => {
                         update_time: new Date().toISOString(),
                         email_address: paymentIntentSuccess.receipt_email || '',
                     };
+
+                    // Deduct stock
+                    for (const item of order.products) {
+                        await Product.findByIdAndUpdate(item.productId, {
+                            $inc: { stock: -item.quantity }
+                        });
+                    }
 
                     await order.save();
                     console.log(`Order ${orderId} marked as Paid via webhook`);

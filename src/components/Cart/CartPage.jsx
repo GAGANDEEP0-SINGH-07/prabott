@@ -33,7 +33,9 @@ function CartItem({ item, onUpdate, onRemove }) {
                 {/* Details */}
                 <div className="flex-1 min-w-0">
                     <h3 className="text-[17px] font-bold text-[#1a1a18] mb-1 truncate tracking-tight">{item.name}</h3>
-                    <p className="text-[13px] text-[#888] mb-4">In Stock - Ready to Ship</p>
+                    <p className={`text-[13px] mb-4 ${item.stock <= 5 ? 'text-[#e05252] font-semibold' : 'text-[#888]'}`}>
+                        {item.stock > 0 ? `${item.stock} Available in Stock` : 'Out of Stock'}
+                    </p>
                     <button
                         onClick={handleRemove}
                         className="text-[12px] font-bold text-[#e05252] uppercase tracking-widest hover:text-[#c04040] transition-colors"
@@ -55,7 +57,8 @@ function CartItem({ item, onUpdate, onRemove }) {
                         <span className="w-10 text-center text-[14px] font-bold text-[#1a1a18]">{item.quantity}</span>
                         <button
                             onClick={() => onUpdate(item.id, item.quantity + 1)}
-                            className="w-8 h-8 flex items-center justify-center text-[#1a1a18] hover:bg-white rounded-lg transition-colors font-bold"
+                            disabled={item.quantity >= item.stock}
+                            className={`w-8 h-8 flex items-center justify-center text-[#1a1a18] rounded-lg transition-colors font-bold ${item.quantity >= item.stock ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white'}`}
                             aria-label="Increase quantity"
                         >
                             +

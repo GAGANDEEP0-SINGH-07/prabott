@@ -50,6 +50,7 @@ export function CartProvider({ children }) {
                     price: p.productId?.price,
                     image: p.productId?.images?.[0] || '',
                     quantity: p.quantity,
+                    stock: p.productId?.stock,
                     _id: p.productId?._id 
                 }));
                 setCartItems(mappedCart);

@@ -98,6 +98,17 @@
     font-weight: 600;
 }
 
+.pd-stock-status {
+    font-size: 14px;
+    font-weight: 500;
+    color: #4CAF50;
+    margin-top: -8px;
+}
+
+.pd-stock-status.low {
+    color: #e05252;
+}
+
 /* Accordions */
 .pd-accordion {
     border: 1px solid #eee;

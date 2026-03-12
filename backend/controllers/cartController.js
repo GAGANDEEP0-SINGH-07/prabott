@@ -41,6 +41,11 @@ const addToCart = async (req, res) => {
             return res.status(404).json({ message: `Product "${productName}" not found in database. Please seed DB.` });
         }
 
+        // Check stock
+        if (product.stock < quantity) {
+            return res.status(400).json({ message: `Insufficient stock. Only ${product.stock} left.` });
+        }
+
         // Use the actual MongoDB _id from the found product
         const actualProductId = product._id;
 
@@ -74,7 +79,7 @@ const addToCart = async (req, res) => {
 
         await cart.save();
 
-        const updatedCart = await Cart.findOne({ userId: req.user._id }).populate('products.productId', 'name price images');
+        const updatedCart = await Cart.findOne({ userId: req.user._id }).populate('products.productId', 'name price images stock');
         console.log(`[DEBUG] Successfully added product "${product.name}" to cart.`);
         res.status(200).json(updatedCart);
     } catch (error) {
@@ -88,7 +93,7 @@ const addToCart = async (req, res) => {
 // @access  Private
 const getCart = async (req, res) => {
     try {
-        const cart = await Cart.findOne({ userId: req.user._id }).populate('products.productId', 'name price images');
+        const cart = await Cart.findOne({ userId: req.user._id }).populate('products.productId', 'name price images stock');
         if (cart) {
             res.status(200).json(cart);
         } else {
@@ -123,7 +128,7 @@ const removeFromCart = async (req, res) => {
             }, 0);
 
             await cart.save();
-            const updatedCart = await Cart.findOne({ userId: req.user._id }).populate('products.productId', 'name price images');
+            const updatedCart = await Cart.findOne({ userId: req.user._id }).populate('products.productId', 'name price images stock');
             res.status(200).json(updatedCart);
         } else {
             res.status(404).json({ message: 'Cart not found' });
@@ -152,6 +157,12 @@ const updateCartQuantity = async (req, res) => {
             );
 
             if (itemIndex > -1) {
+                // Check stock
+                const product = await Product.findById(productId);
+                if (product && product.stock < quantity) {
+                    return res.status(400).json({ message: `Insufficient stock. Only ${product.stock} left.` });
+                }
+
                 cart.products[itemIndex].quantity = quantity;
 
                 await cart.populate('products.productId', 'price');
@@ -163,7 +174,7 @@ const updateCartQuantity = async (req, res) => {
                 }, 0);
 
                 await cart.save();
-                const updatedCart = await Cart.findOne({ userId: req.user._id }).populate('products.productId', 'name price images');
+                const updatedCart = await Cart.findOne({ userId: req.user._id }).populate('products.productId', 'name price images stock');
                 res.status(200).json(updatedCart);
             } else {
                 res.status(404).json({ message: 'Product not found in cart' });

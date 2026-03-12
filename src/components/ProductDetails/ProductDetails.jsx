@@ -60,7 +60,8 @@ const ProductDetails = () => {
             name: product.name,
             price: product.price,
             image: product.images?.[0] || product.img || '',
-            description: product.description || ''
+            description: product.description || '',
+            stock: product.stock
         }, quantity);
     };
 
@@ -75,7 +76,8 @@ const ProductDetails = () => {
                 name: product.name,
                 price: product.price,
                 image: product.images?.[0] || product.img || '',
-                description: product.description || ''
+                description: product.description || '',
+                stock: product.stock
             }, quantity);
             navigate('/cart');
         }
@@ -157,6 +159,14 @@ const ProductDetails = () => {
                 <div className="pd-info-section">
                     <h1 className="pd-product-title">{displayProduct.name}</h1>
                     <div className="pd-product-price">{formatPrice(displayProduct.price)}</div>
+                    
+                    <div className={`pd-stock-status ${displayProduct.stock <= 5 ? 'low' : ''}`}>
+                        {displayProduct.stock > 0 
+                            ? (displayProduct.stock <= 5 
+                                ? `Hurry! Only ${displayProduct.stock} pieces left in stock` 
+                                : `In Stock: ${displayProduct.stock} pieces`)
+                            : "Out of Stock"}
+                    </div>
 
                     {/* Description Accordion */}
                     <div className={`pd-accordion ${descOpen ? 'open' : ''}`}>
@@ -203,14 +213,31 @@ const ProductDetails = () => {
                         <div className="pd-quantity-control">
                             <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
                             <span>{quantity}</span>
-                            <button onClick={() => setQuantity(quantity + 1)}>+</button>
+                            <button 
+                                onClick={() => setQuantity(Math.min(displayProduct.stock, quantity + 1))}
+                                disabled={quantity >= displayProduct.stock}
+                            >
+                                +
+                            </button>
                         </div>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="pd-action-buttons">
-                        <button className="pd-btn-add-cart" onClick={handleAddToCart}>Add to Cart</button>
-                        <button className="pd-btn-buy-now" onClick={handleBuyNow}>Buy Now</button>
+                        <button 
+                            className="pd-btn-add-cart" 
+                            onClick={handleAddToCart}
+                            disabled={!displayProduct.stock || displayProduct.stock < 1}
+                        >
+                            {displayProduct.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                        </button>
+                        <button 
+                            className="pd-btn-buy-now" 
+                            onClick={handleBuyNow}
+                            disabled={!displayProduct.stock || displayProduct.stock < 1}
+                        >
+                            Buy Now
+                        </button>
                     </div>
 
                     {/* Features Accordion */}
