@@ -5,13 +5,13 @@ const User = require('./models/User');
 dotenv.config();
 
 const createAdmin = async () => {
-    const adminEmail = 'admin@gmail.com'; // Change this if you want a different email
+    const adminEmail = 'adminm@gmail.com'; // Change this if you want a different email
     const adminPassword = 'adminpassword123'; // Change this to your desired password
     const adminName = 'System Admin';
 
     try {
         await mongoose.connect(process.env.MONGO_URI);
-        
+
         // Check if user already exists
         let user = await User.findOne({ email: adminEmail });
 
@@ -19,7 +19,7 @@ const createAdmin = async () => {
             console.log('User already exists. Updating to admin...');
             user.role = 'admin';
             // We only update password if you want to reset it
-            user.password = adminPassword; 
+            user.password = adminPassword;
             await user.save();
             console.log('User updated to Admin successfully!');
         } else {
