@@ -93,7 +93,8 @@ export function CartProvider({ children }) {
                     price: numericPrice,
                     image: product.image || product.img || (product.images && product.images[0]) || '',
                     description: product.description || product.cat || '',
-                    quantity: quantity
+                    quantity: quantity,
+                    stock: product.stock
                 }];
             });
             return;
@@ -104,6 +105,14 @@ export function CartProvider({ children }) {
             const productName = product.name;
             const productIdStr = productId ? String(productId) : '';
             const isValidObjectId = productIdStr && /^[0-9a-fA-F]{24}$/.test(productIdStr);
+
+            // Local stock check with existing cart items
+            const existingItem = cartItems.find(item => item.id === productId);
+            const currentQty = existingItem ? existingItem.quantity : 0;
+            if (product.stock !== undefined && (currentQty + quantity) > product.stock) {
+                alert(`Cannot add more. You have ${currentQty} in cart, and only ${product.stock} are available total.`);
+                return;
+            }
 
             await api.post('/cart/add', {
                 productId: isValidObjectId ? productId : undefined,
@@ -135,6 +144,13 @@ export function CartProvider({ children }) {
     const updateQuantity = async (id, newQty) => {
         const qty = Math.max(1, newQty);
         
+        // Local stock check for immediate feedback
+        const item = cartItems.find(i => i.id === id);
+        if (item && item.stock !== undefined && qty > item.stock) {
+            alert(`Sorry, only ${item.stock} pieces are available in stock.`);
+            return;
+        }
+
         if (!user) {
             setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: qty } : item));
             return;
