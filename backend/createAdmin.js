@@ -16,21 +16,21 @@ const createAdmin = async () => {
         let user = await User.findOne({ email: adminEmail });
 
         if (user) {
-            console.log('User already exists. Updating to admin...');
-            user.role = 'admin';
+            console.log('User already exists. Updating to superadmin...');
+            user.role = 'superadmin';
             // We only update password if you want to reset it
             user.password = adminPassword;
             await user.save();
-            console.log('User updated to Admin successfully!');
+            console.log('User updated to Super Admin successfully!');
         } else {
-            console.log('Creating new Admin user...');
+            console.log('Creating new Super Admin user...');
             user = await User.create({
                 name: adminName,
                 email: adminEmail,
                 password: adminPassword,
-                role: 'admin'
+                role: 'superadmin'
             });
-            console.log('Admin user created successfully!');
+            console.log('Super Admin user created successfully!');
         }
 
         process.exit();

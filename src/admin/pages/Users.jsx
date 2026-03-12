@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { fetchAdminUsers, updateUserRole, suspendUser, deleteUser } from '../services/adminApi';
 import AdminTable from '../components/AdminTable';
 
 export default function Users() {
     const navigate = useNavigate();
+    const { user: currentUser } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -100,13 +102,17 @@ export default function Users() {
                     >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </button>
-                    <button
-                        onClick={() => handleRole(row._id, row.role)}
-                        className={`p-1.5 rounded-md transition-colors ${row.role === 'admin' ? 'text-amber-500 hover:bg-amber-50 hover:text-amber-600' : 'text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600'}`}
-                        title={row.role === 'admin' ? 'Demote to Customer' : 'Promote to Admin'}
-                    >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M12 20V10"></path><path d="m18 14-6-6-6 6"></path></svg>
-                    </button>
+                    {/* Only superadmin can promote/demote admins. Regular admins can manage other things. */}
+                    {(currentUser?.role === 'superadmin' || row.role !== 'user') && (
+                        <button
+                            onClick={() => handleRole(row._id, row.role)}
+                            className={`p-1.5 rounded-md transition-colors ${row.role === 'admin' || row.role === 'superadmin' ? 'text-amber-500 hover:bg-amber-50 hover:text-amber-600' : 'text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600'}`}
+                            title={row.role === 'admin' || row.role === 'superadmin' ? 'Demote to Customer' : 'Promote to Admin'}
+                            disabled={row.role === 'superadmin' && currentUser?.role !== 'superadmin'}
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M12 20V10"></path><path d="m18 14-6-6-6 6"></path></svg>
+                        </button>
+                    )}
                     <button
                         onClick={() => handleSuspend(row._id, row.suspended)}
                         className={`p-1.5 rounded-md transition-colors ${row.suspended ? 'text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600' : 'text-amber-500 hover:bg-amber-50 hover:text-amber-600'}`}

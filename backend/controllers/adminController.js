@@ -295,6 +295,9 @@ const getAdminUserDetails = async (req, res) => {
 const updateUserRole = async (req, res) => {
     try {
         const { role } = req.body;
+        if (role === 'admin' && req.user.role !== 'superadmin') {
+            return res.status(403).json({ message: 'Only a Super Admin can promote users to Admin.' });
+        }
         if (!['customer', 'admin', 'user'].includes(role)) {
             return res.status(400).json({ message: 'Invalid role' });
         }
