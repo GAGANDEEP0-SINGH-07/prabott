@@ -11,6 +11,11 @@ function ProductCard({ product }) {
                     Sale
                 </span>
             )}
+            {product.stock === 0 && (
+                <span className="absolute top-3.5 left-3.5 bg-[#e05252] text-white text-[0.62rem] font-bold tracking-[0.04em] uppercase px-2 py-[3px] rounded-full z-10">
+                    Out of Stock
+                </span>
+            )}
 
             <div className="text-[0.88rem] font-semibold text-[#111110] tracking-[-0.01em] leading-[1.3] mb-3">
                 {product.name}

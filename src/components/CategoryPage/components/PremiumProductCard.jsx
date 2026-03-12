@@ -42,6 +42,14 @@ export function PremiumProductCard({ product, onAddCart, view }) {
                         <div className={`badge badge-${product.badge.toLowerCase()}`}
                             style={{ top: 8, left: 8 }}>{product.badge}</div>
                     )}
+                    {product.stock === 0 && (
+                        <div style={{
+                            position: "absolute", top: 8, right: 8,
+                            padding: "4px 10px", borderRadius: 6,
+                            backgroundColor: "#e05252", color: "white",
+                            fontSize: 10, fontWeight: 700, textTransform: "uppercase"
+                        }}>Out of Stock</div>
+                    )}
                 </div>
                 <div style={{ flex: 1, padding: "20px 0" }}>
                     <div style={{ fontSize: 11, color: "#bbb", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>
@@ -70,18 +78,32 @@ export function PremiumProductCard({ product, onAddCart, view }) {
                             </span>
                         )}
                     </div>
-                    <button style={{
-                        background: "none", color: "#1a1a18",
-                        border: "1px solid #1a1a18", padding: "10px 24px",
-                        fontSize: 12, fontWeight: 500, letterSpacing: ".3px",
-                        borderRadius: 10, cursor: "pointer",
-                        fontFamily: "'Inter',sans-serif", transition: "all .3s",
-                    }}
-                        onMouseEnter={e => { e.currentTarget.style.background = "#1a1a18"; e.currentTarget.style.color = "#fff"; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#1a1a18"; }}
-                        onClick={(e) => { e.stopPropagation(); onAddCart(product); }}
+                    <button 
+                        disabled={product.stock === 0}
+                        style={{
+                            background: product.stock === 0 ? "#f5f5f5" : "none", 
+                            color: product.stock === 0 ? "#ccc" : "#1a1a18",
+                            border: product.stock === 0 ? "1px solid #eee" : "1px solid #1a1a18", 
+                            padding: "10px 24px",
+                            fontSize: 12, fontWeight: 500, letterSpacing: ".3px",
+                            borderRadius: 10, cursor: product.stock === 0 ? "not-allowed" : "pointer",
+                            fontFamily: "'Inter',sans-serif", transition: "all .3s",
+                        }}
+                        onMouseEnter={e => { 
+                            if(product.stock > 0) {
+                                e.currentTarget.style.background = "#1a1a18"; 
+                                e.currentTarget.style.color = "#fff"; 
+                            }
+                        }}
+                        onMouseLeave={e => { 
+                            if(product.stock > 0) {
+                                e.currentTarget.style.background = "none"; 
+                                e.currentTarget.style.color = "#1a1a18"; 
+                            }
+                        }}
+                        onClick={(e) => { e.stopPropagation(); if(product.stock > 0) onAddCart(product); }}
                     >
-                        Add to Cart
+                        {product.stock === 0 ? 'Sold Out' : 'Add to Cart'}
                     </button>
                     <button
                         onClick={handleWishlist}
@@ -100,6 +122,14 @@ export function PremiumProductCard({ product, onAddCart, view }) {
             <div className="pcard-img">
                 {product.badge && (
                     <div className={`badge badge-${product.badge.toLowerCase()}`}>{product.badge}</div>
+                )}
+                {product.stock === 0 && (
+                    <div style={{
+                        position: "absolute", top: 12, right: 12,
+                        padding: "4px 10px", borderRadius: 6,
+                        backgroundColor: "#e05252", color: "white",
+                        fontSize: 9, fontWeight: 800, textTransform: "uppercase"
+                    }}>Out of Stock</div>
                 )}
                 <button
                     className={`wish-btn ${isWishlisted ? "active" : ""}`}
@@ -134,18 +164,30 @@ export function PremiumProductCard({ product, onAddCart, view }) {
                         )}
                     </div>
                     <button
+                        disabled={product.stock === 0}
                         style={{
                             width: 32, height: 32, borderRadius: "50%",
-                            background: "#1a1a18", color: "white",
-                            border: "none", cursor: "pointer",
-                            display: "flex", alignItems: "center", justifyContent: "center",
+                            background: product.stock === 0 ? "#eee" : "#1a1a18", 
+                            color: product.stock === 0 ? "#bbb" : "white",
+                            border: "none", cursor: product.stock === 0 ? "not-allowed" : "pointer",
+                            display: "flex", alignItems: "center", justifyCenter: "center",
                             fontSize: 18, transition: "all .2s ease"
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.background = "#333"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.background = "#1a1a18"; }}
-                        onClick={(e) => { e.stopPropagation(); onAddCart(product); }}
+                        onMouseEnter={(e) => { 
+                            if(product.stock > 0) {
+                                e.currentTarget.style.transform = "scale(1.05)"; 
+                                e.currentTarget.style.background = "#333"; 
+                            }
+                        }}
+                        onMouseLeave={(e) => { 
+                            if(product.stock > 0) {
+                                e.currentTarget.style.transform = "scale(1)"; 
+                                e.currentTarget.style.background = "#1a1a18"; 
+                            }
+                        }}
+                        onClick={(e) => { e.stopPropagation(); if(product.stock > 0) onAddCart(product); }}
                     >
-                        +
+                        {product.stock === 0 ? '×' : '+'}
                     </button>
                 </div>
             </div>

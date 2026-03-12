@@ -12,6 +12,11 @@ function CategoryProductCard({ product }) {
                         <span className="text-[#111] text-[0.65rem] font-bold tracking-[0.06em] uppercase">Sale</span>
                     </div>
                 )}
+                {product.stock === 0 && (
+                    <div className="absolute top-4 right-4 z-10 bg-[#e05252]/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+                        <span className="text-white text-[0.65rem] font-bold tracking-[0.06em] uppercase">Out of Stock</span>
+                    </div>
+                )}
 
                 <img
                     className="w-full h-full object-contain transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
