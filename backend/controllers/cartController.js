@@ -56,12 +56,27 @@ const addToCart = async (req, res) => {
                 (p) => p.productId.toString() === actualProductId.toString()
             );
 
+            const existingQty = itemIndex > -1 ? cart.products[itemIndex].quantity : 0;
+            const totalRequired = existingQty + quantity;
+
+            if (product.stock < totalRequired) {
+                return res.status(400).json({ 
+                    message: itemIndex > -1 
+                        ? `Cannot add more. You already have ${existingQty} in cart, and only ${product.stock} are available total.`
+                        : `Insufficient stock. Only ${product.stock} left.` 
+                });
+            }
+
             if (itemIndex > -1) {
                 cart.products[itemIndex].quantity += quantity;
             } else {
                 cart.products.push({ productId: actualProductId, quantity });
             }
         } else {
+            // First time cart creation - check stock for initial quantity
+            if (product.stock < quantity) {
+                return res.status(400).json({ message: `Insufficient stock. Only ${product.stock} left.` });
+            }
             cart = await Cart.create({
                 userId: req.user._id,
                 products: [{ productId: actualProductId, quantity }],
@@ -159,7 +174,12 @@ const updateCartQuantity = async (req, res) => {
             if (itemIndex > -1) {
                 // Check stock
                 const product = await Product.findById(productId);
-                if (product && product.stock < quantity) {
+                if (!product) {
+                    return res.status(404).json({ message: 'Product not found in database.' });
+                }
+
+                // Improved stock check: ensure the new total quantity does not exceed stock
+                if (product.stock < quantity) {
                     return res.status(400).json({ message: `Insufficient stock. Only ${product.stock} left.` });
                 }
 

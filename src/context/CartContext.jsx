@@ -102,7 +102,8 @@ export function CartProvider({ children }) {
         try {
             const productId = product._id || product.id;
             const productName = product.name;
-            const isValidObjectId = productId && typeof productId === 'string' && /^[0-9a-fA-F]{24}$/.test(productId);
+            const productIdStr = productId ? String(productId) : '';
+            const isValidObjectId = productIdStr && /^[0-9a-fA-F]{24}$/.test(productIdStr);
 
             await api.post('/cart/add', {
                 productId: isValidObjectId ? productId : undefined,
@@ -112,6 +113,8 @@ export function CartProvider({ children }) {
             fetchCart(); 
         } catch (error) {
             console.error("Error adding to remote cart", error);
+            const msg = error.response?.data?.message || "Failed to add to cart. Stock may be insufficient.";
+            alert(msg);
         }
     };
 
@@ -142,7 +145,8 @@ export function CartProvider({ children }) {
             fetchCart();
         } catch (error) {
             console.error("Error updating cart quantity", error);
-            // Optimistic update fallback or just ignore and let fetchCart handle sync if it fails
+            const msg = error.response?.data?.message || "Failed to update quantity. Stock may be insufficient.";
+            alert(msg);
         }
     };
 
