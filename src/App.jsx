@@ -49,7 +49,7 @@ function AdminRoute({ children }) {
   const { user, loading } = useAuth();
   
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">Loading...</div>;
-  if (!user || user.role !== 'admin') return <Navigate to="/" replace />;
+  if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <Navigate to="/" replace />;
   
   return children;
 }

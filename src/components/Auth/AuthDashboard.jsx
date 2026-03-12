@@ -732,7 +732,7 @@ export default function AuthDashboard({ initialScreen = "login" }) {
     const handleLogin = useCallback(async (userData) => {
         const res = await login(userData);
         if (res?.success) {
-            if (res.user?.role === 'admin') {
+            if (res.user?.role === 'admin' || res.user?.role === 'superadmin') {
                 navigate("/admin", { replace: true });
             } else {
                 navigate(searchParams.get("redirect") || "/", { replace: true });
