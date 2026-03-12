@@ -1,7 +1,15 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+    const apiBase = import.meta.env.VITE_API_URL || '/api';
+    // Remove trailing slash if any
+    const normalizedBase = apiBase.endsWith('/') ? apiBase.slice(0, -1) : apiBase;
+    // If it already ends with /api, just add /admin. Otherwise add /api/admin
+    return normalizedBase.endsWith('/api') ? `${normalizedBase}/admin` : `${normalizedBase}/api/admin`;
+};
+
 const adminApi = axios.create({
-    baseURL: `${import.meta.env.VITE_API_URL || ''}/api/admin`,
+    baseURL: getBaseURL(),
 });
 
 adminApi.interceptors.request.use((config) => {
