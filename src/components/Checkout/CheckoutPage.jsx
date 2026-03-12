@@ -110,10 +110,7 @@ export default function CheckoutPage() {
     const handlePaymentSubmit = async (paymentData) => {
         const { stripe, elements, cardName } = paymentData;
 
-        setIsProcessing(true);
-        setStep(4);
-        window.scrollTo(0, 0);
-
+        // 0. Pre-validate stock by attempting to create order (Pending Payment) before showing processing screen
         try {
             const api = (await import('../../api')).default;
 
@@ -134,10 +131,14 @@ export default function CheckoutPage() {
                 totalAmount: total,
             };
 
-            // 1. Create order (Pending Payment)
             const res = await api.post('/orders/create', orderDataPayload);
             const createdOrder = res.data;
             const finalOrderId = createdOrder._id || createdOrder.id;
+
+            // 1. Order created successfully (stock is reserved/validated), now move to processing
+            setIsProcessing(true);
+            setStep(4);
+            window.scrollTo(0, 0);
 
             // 2. Create Payment Intent
             const intentRes = await api.post('/payments/create-payment-intent', {
@@ -232,12 +233,21 @@ export default function CheckoutPage() {
             }
         } catch (error) {
             console.error('Payment processing error:', error);
-            setPaymentResult({
-                status: 'failed',
-                message: error.response?.data?.message || 'An unexpected error occurred. Please try again.',
-            });
-            // Show failure screen inline
-            setStep(5);
+            const errorMessage = error.response?.data?.message || 'An unexpected error occurred. Please try again.';
+            
+            setIsProcessing(false);
+            
+            // If the error happened before we moved to processing (e.g. stock error in /orders/create)
+            // or if it's a specific validation error, show an alert and stay on step 3.
+            if (step < 4) {
+                alert(errorMessage);
+            } else {
+                setPaymentResult({
+                    status: 'failed',
+                    message: errorMessage,
+                });
+                setStep(5);
+            }
         }
     };
 
