@@ -49,7 +49,7 @@ function Products() {
                             id: product._id,
                             cat: product.category,
                             price: product.price,
-                            img: product.images?.[0] || 'https://via.placeholder.com/600',
+                            img: product.images?.[0] || 'https://placehold.co/600',
                         };
                         return (
                             <div key={adaptedProduct.id} className={`rv rv${(i % 4) + 1}`}>

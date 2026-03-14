@@ -54,7 +54,7 @@ export function CategoryPage({ page, onAddCart }) {
                     id: p._id,
                     cat: p.category,
                     price: p.price,
-                    img: p.images?.[0] || 'https://via.placeholder.com/600',
+                    img: p.images?.[0] || 'https://placehold.co/600',
                     rating: p.ratings || 5, 
                     oldPrice: null,
                 }));

@@ -97,7 +97,7 @@ const ProductDetails = () => {
         price: product.price,
         description: product.description,
         colors: product.colors && product.colors.length > 0 ? product.colors : ['#1a1a18', '#8B7355', '#E0C9A6'],
-        images: product.images && product.images.length > 0 ? product.images : ["https://via.placeholder.com/1200x1200?text=No+Image"],
+        images: product.images && product.images.length > 0 ? product.images : ["https://placehold.co/1200x1200?text=No+Image"],
         rating: product.ratings || 5,
         reviewsNum: product.numReviews || 0,
         features: product.features || [],

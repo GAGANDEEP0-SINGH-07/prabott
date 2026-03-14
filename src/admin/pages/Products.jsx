@@ -50,10 +50,10 @@ export default function Products() {
             key: 'image', header: 'Image', sortable: false,
             render: (row) => (
                 <img
-                    src={row.images?.[0] || 'https://via.placeholder.com/50x50?text=No+Image'}
+                    src={row.images?.[0] || 'https://placehold.co/50x50?text=No+Image'}
                     alt={row.name}
                     className="w-12 h-12 object-cover rounded-lg border border-slate-200 shadow-sm"
-                    onError={e => { e.target.src = 'https://via.placeholder.com/50x50?text=N/A'; }}
+                    onError={e => { e.target.src = 'https://placehold.co/50x50?text=N/A'; }}
                 />
             ),
         },
